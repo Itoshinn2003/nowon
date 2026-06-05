@@ -1,28 +1,28 @@
 import { router } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
-import { Button } from "react-native-paper";
+import { View } from "react-native";
+
+import { GoogleContinueButton } from "@/src/components/auth/GoogleContinueButton";
+import { SignUpForm } from "@/src/components/auth/SignUpForm";
+import { AuthSwitchLink } from "@/src/components/ui/AuthSwitchLink";
+import { DividerWithText } from "@/src/components/ui/DividerWithText";
 
 export default function SignUpScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>新規登録</Text>
-      <Button mode="contained" onPress={() => router.push("/welcome")}>
-        戻る
-      </Button>
+    <View className="flex-1 justify-center bg-white px-6">
+      <View className="w-full gap-8">
+        <SignUpForm />
+
+        <View className="gap-4">
+          <DividerWithText />
+          <GoogleContinueButton />
+        </View>
+
+        <AuthSwitchLink
+          prompt="すでにアカウントをお持ちの方"
+          actionText="ログイン"
+          onPress={() => router.push("/signin")}
+        />
+      </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-  },
-  title: {
-    color: "#111827",
-    fontSize: 24,
-    fontWeight: "700",
-  },
-});
