@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
 import { FormInput } from "@/src/components/ui/FormInput";
-import { SignUpFormState, VisibleValidationError } from "@/src/types/auth";
+import type { SignUpFormState, VisibleValidationError } from "@/src/types/auth";
 import {
   emailValidate,
   passwordConfirmationValidate,
@@ -12,22 +12,18 @@ import {
 
 // 親コンポーネントから受け取る値。
 // API 通信や画面遷移は親が担当し、このフォームは入力値を組み立てて渡すだけにする。
-// 今は入力とバリデーションに集中するため、親コンポーネント連携は一旦コメントアウトしている。
-// type Props = {
-//   isSubmitting?: boolean;
-//   validationError?: string[];
-//   onSubmit?: (formData: SignUpFormState) => void;
-// };
+type Props = {
+  isSubmitting?: boolean;
+  validationError?: string[];
+  onSubmit?: (formData: SignUpFormState) => void;
+};
 
-export function SignUpForm() {
-  // 親コンポーネント連携を戻す時は、上の Props とこの引数を戻す。
-  // {
-  //   isSubmitting = false,
-  //   validationError = [],
-  //   onSubmit,
-  // }: Props
+export function SignUpForm({
+  isSubmitting = false,
+  validationError = [],
+  onSubmit,
+}: Props) {
   // フォームの入力値。
-  // 一時的な入力状態なので store には入れず、このフォームコンポーネント内で持つ。
   const [formData, setFormData] = useState<SignUpFormState>({
     email: "",
     password: "",
@@ -63,15 +59,12 @@ export function SignUpForm() {
   );
 
   const canSubmit =
-    isEmailValid && isPasswordValid && isPasswordConfirmationValid;
-  // 親コンポーネント連携を戻す時は、送信中の二重送信防止もここに戻す。
-  // const canSubmit =
-  //   isEmailValid &&
-  //   isPasswordValid &&
-  //   isPasswordConfirmationValid &&
-  //   !isSubmitting;
+    isEmailValid &&
+    isPasswordValid &&
+    isPasswordConfirmationValid &&
+    !isSubmitting;
 
-  // 入力が止まってから1秒後に、入力済みでバリデーションNGのフィールドだけエラー表示する。
+  // 入力が止まってから0.8秒後に、入力済みでバリデーションNGのフィールドだけエラー表示する。
   // 入力が続いている場合は cleanup で前の timer を消すので、最後の入力から1秒後だけ実行される。
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -105,20 +98,19 @@ export function SignUpForm() {
       [key]: value,
     }));
 
+    // updateForm 側の setVisibleValidationError(...[key]: false) は「入力中のフィールドのエラーを一旦消す」ため
+    // useEffect 側の setVisibleValidationError(...) は「入力が止まって 800ms 後に、まだ不正ならエラーを表示する」ため
     setVisibleValidationError((currentVisibleValidationError) => ({
       ...currentVisibleValidationError,
       [key]: false,
     }));
   }
 
-  // submit 時はこのコンポーネント内で API 通信しない。
-  // 入力値を親へ渡し、親側で API 通信や画面遷移を行う。
-  // 親コンポーネント連携を戻す時に使う。
-  // function handleSubmit() {
-  //   if (!canSubmit) return;
-  //
-  //   onSubmit?.(formData);
-  // }
+  function handleSubmit() {
+    if (!canSubmit) return;
+
+    onSubmit?.(formData);
+  }
 
   return (
     <View className="gap-8">
@@ -126,8 +118,7 @@ export function SignUpForm() {
         新規登録
       </Text>
 
-      {/* 親から渡されるフォーム全体のエラー表示。今は親連携を外しているので一旦コメントアウト。 */}
-      {/* {validationError.length > 0 ? (
+      {validationError.length > 0 ? (
         <View className="gap-1">
           {validationError.map((error) => (
             // validationError はサーバー側など、親から渡されるフォーム全体のエラー。
@@ -136,7 +127,7 @@ export function SignUpForm() {
             </Text>
           ))}
         </View>
-      ) : null} */}
+      ) : null}
 
       <View className="gap-4">
         <FormInput
@@ -174,7 +165,7 @@ export function SignUpForm() {
         />
       </View>
 
-      <Button mode="contained" disabled={!canSubmit} onPress={() => {}}>
+      <Button mode="contained" disabled={!canSubmit} onPress={handleSubmit}>
         新規登録する
       </Button>
     </View>
