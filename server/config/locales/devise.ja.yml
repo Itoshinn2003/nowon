@@ -1,0 +1,13 @@
+ja:
+  devise:
+    mailer:
+      confirmation_instructions:
+        subject: "メールアドレス確認のお願い"
+      reset_password_instructions:
+        subject: "パスワード再設定のご案内"
+      unlock_instructions:
+        subject: "アカウントロック解除のご案内"
+      email_changed:
+        subject: "メールアドレス変更のお知らせ"
+      password_change:
+        subject: "パスワード変更のお知らせ"

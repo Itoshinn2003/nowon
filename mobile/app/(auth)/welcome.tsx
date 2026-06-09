@@ -1,6 +1,9 @@
 import { router } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { Button } from "react-native-paper";
+
+import { GoogleContinueButton } from "@/src/components/auth/GoogleContinueButton";
+import { AuthSwitchLink } from "@/src/components/ui/AuthSwitchLink";
 
 export default function WelcomeScreen() {
   return (
@@ -19,17 +22,14 @@ export default function WelcomeScreen() {
           <Button mode="contained" onPress={() => router.push("/signup")}>
             メールで続ける
           </Button>
-          <Button mode="outlined" onPress={() => {}}>
-            Googleで続ける
-          </Button>
+          <GoogleContinueButton />
         </View>
 
-        <Pressable onPress={() => router.push("/signin")}>
-          <Text className="text-center text-sm text-gray-600">
-            すでにアカウントをお持ちの方
-            <Text className="font-bold text-blue-600"> ログイン</Text>
-          </Text>
-        </Pressable>
+        <AuthSwitchLink
+          prompt="すでにアカウントをお持ちの方"
+          actionText="ログイン"
+          onPress={() => router.push("/signin")}
+        />
       </View>
     </View>
   );
