@@ -48,7 +48,7 @@ export default function SignUpScreen() {
         <AuthSwitchLink
           prompt="すでにアカウントをお持ちの方"
           actionText="ログイン"
-          onPress={() => router.push("/signin")}
+          onPress={() => router.replace("/signin")}
         />
       </View>
     </View>
