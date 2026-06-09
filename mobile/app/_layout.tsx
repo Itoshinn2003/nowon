@@ -3,9 +3,25 @@ import "../global.css";
 import { Redirect, Stack, useSegments } from "expo-router";
 import { PaperProvider } from "react-native-paper";
 
+import { AuthProvider, useAuthStore } from "@/src/stores/authStore";
+
 export default function RootLayout() {
-  const isLoggedIn = false;
+  return (
+    <PaperProvider>
+      <AuthProvider>
+        <AuthNavigation />
+      </AuthProvider>
+    </PaperProvider>
+  );
+}
+
+function AuthNavigation() {
+  const { status, isLoggedIn } = useAuthStore();
   const segments = useSegments();
+
+  if (status === "loading") {
+    return null;
+  }
 
   const inAuthGroup = segments[0] === "(auth)";
 
@@ -19,5 +35,5 @@ export default function RootLayout() {
     content = <Stack screenOptions={{ headerShown: false }}></Stack>;
   }
 
-  return <PaperProvider>{content}</PaperProvider>;
+  return content;
 }

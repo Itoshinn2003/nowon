@@ -4,6 +4,11 @@ export type SignUpFormState = {
   passwordConfirmation: string;
 };
 
+export type SignInFormState = {
+  email: string;
+  password: string;
+};
+
 export type VisibleValidationError = {
   email: boolean;
   password: boolean;
@@ -26,6 +31,23 @@ export type SignUpResponse = {
     provider: string;
     uid: string;
   };
+};
+
+export type SignInResponse = {
+  data: {
+    id: number;
+    email: string;
+    provider: string;
+    uid: string;
+  };
+};
+
+export type AuthHeaders = {
+  accessToken?: string;
+  client?: string;
+  uid?: string;
+  expiry?: string;
+  tokenType?: string;
 };
 
 export type AuthErrorResponse = {

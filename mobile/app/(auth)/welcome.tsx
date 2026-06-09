@@ -19,7 +19,7 @@ export default function WelcomeScreen() {
         </View>
 
         <View className="gap-3">
-          <Button mode="contained" onPress={() => router.push("/signup")}>
+          <Button mode="contained" onPress={() => router.replace("/signup")}>
             メールで続ける
           </Button>
           <GoogleContinueButton />
@@ -28,7 +28,7 @@ export default function WelcomeScreen() {
         <AuthSwitchLink
           prompt="すでにアカウントをお持ちの方"
           actionText="ログイン"
-          onPress={() => router.push("/signin")}
+          onPress={() => router.replace("/signin")}
         />
       </View>
     </View>
