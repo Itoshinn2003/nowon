@@ -1,12 +1,14 @@
+import axios from "axios";
 import { router } from "expo-router";
 import { View } from "react-native";
 
+import { signUp } from "@/src/api/auth";
 import { GoogleContinueButton } from "@/src/components/auth/GoogleContinueButton";
 import { SignUpForm } from "@/src/components/auth/SignUpForm";
 import { AuthSwitchLink } from "@/src/components/ui/AuthSwitchLink";
 import { DividerWithText } from "@/src/components/ui/DividerWithText";
 import { useSubmitState } from "@/src/hooks/useSubmitState";
-import type { SignUpFormState } from "@/src/types/auth";
+import type { AuthErrorResponse, SignUpFormState } from "@/src/types/auth";
 
 export default function SignUpScreen() {
   const {
@@ -21,11 +23,9 @@ export default function SignUpScreen() {
     startSubmitting();
 
     try {
-      console.log(formData.email, formData.password);
-      // TODO: signup API ができたら、ここで formData を送信する。
-      await Promise.resolve(formData);
-    } catch {
-      setValidationError("新規登録に失敗しました。時間をおいて再度お試しください。");
+      await signUp(formData);
+    } catch (error) {
+      setValidationError(getSignUpErrorMessages(error));
     } finally {
       finishSubmitting();
     }
@@ -53,4 +53,15 @@ export default function SignUpScreen() {
       </View>
     </View>
   );
+}
+
+function getSignUpErrorMessages(error: unknown) {
+  if (axios.isAxiosError(error)) {
+    return (
+      (error.response?.data as AuthErrorResponse | undefined)?.errors ??
+      "新規登録に失敗しました。時間をおいて再度お試しください。"
+    );
+  }
+
+  return "新規登録に失敗しました。時間をおいて再度お試しください。";
 }

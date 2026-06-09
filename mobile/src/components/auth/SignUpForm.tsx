@@ -3,7 +3,12 @@ import { Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
 import { FormInput } from "@/src/components/ui/FormInput";
-import type { SignUpFormState, VisibleValidationError } from "@/src/types/auth";
+import { toDisplayErrors } from "@/src/utils/error";
+import type {
+  ErrorMessages,
+  SignUpFormState,
+  VisibleValidationError,
+} from "@/src/types/auth";
 import {
   emailValidate,
   passwordConfirmationValidate,
@@ -14,7 +19,7 @@ import {
 // API 通信や画面遷移は親が担当し、このフォームは入力値を組み立てて渡すだけにする。
 type Props = {
   isSubmitting?: boolean;
-  validationError?: string[];
+  validationError?: ErrorMessages;
   onSubmit?: (formData: SignUpFormState) => void;
 };
 
@@ -23,6 +28,8 @@ export function SignUpForm({
   validationError = [],
   onSubmit,
 }: Props) {
+  const validationErrors = toDisplayErrors(validationError);
+
   // フォームの入力値。
   const [formData, setFormData] = useState<SignUpFormState>({
     email: "",
@@ -118,9 +125,9 @@ export function SignUpForm({
         新規登録
       </Text>
 
-      {validationError.length > 0 ? (
+      {validationErrors.length > 0 ? (
         <View className="gap-1">
-          {validationError.map((error) => (
+          {validationErrors.map((error) => (
             // validationError はサーバー側など、親から渡されるフォーム全体のエラー。
             <Text key={error} className="text-sm text-red-500">
               {error}

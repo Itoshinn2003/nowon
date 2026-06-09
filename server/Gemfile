@@ -49,4 +49,5 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 end
 
-gem "devise", "~> 5.0"
+gem "devise", "~> 4.9"
+gem "devise_token_auth", "~> 1.2"

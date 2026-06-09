@@ -1,8 +1,12 @@
 import { useState } from "react";
 
+import type { ErrorMessages } from "@/src/types/auth";
+
 export function useSubmitState() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [validationError, setValidationErrorState] = useState<string[]>([]);
+  const [validationError, setValidationErrorState] = useState<ErrorMessages>(
+    [],
+  );
 
   const startSubmitting = () => {
     setIsSubmitting(true);
@@ -13,8 +17,8 @@ export function useSubmitState() {
     setIsSubmitting(false);
   };
 
-  const setValidationError = (error: string | string[]) => {
-    setValidationErrorState(Array.isArray(error) ? error : [error]);
+  const setValidationError = (error: ErrorMessages) => {
+    setValidationErrorState(error);
   };
 
   return {
