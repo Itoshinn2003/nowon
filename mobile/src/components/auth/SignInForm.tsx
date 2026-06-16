@@ -75,8 +75,9 @@ export function SignInForm({
   }
 
   function handleSubmit() {
+    console.log("あいうえお");
     if (!canSubmit) return;
-
+    console.log("かきくけこ");
     onSubmit?.(formData);
   }
 
