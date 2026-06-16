@@ -14,7 +14,6 @@ export async function signUp(formData: SignUpFormState) {
     email: formData.email,
     password: formData.password,
     password_confirmation: formData.passwordConfirmation,
-    confirm_success_url: env.confirmSuccessUrl,
   });
 
   return response.data;
