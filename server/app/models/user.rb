@@ -3,4 +3,6 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable, :confirmable
 
   include DeviseTokenAuth::Concerns::User
+
+  has_one :user_profile, dependent: :destroy
 end
