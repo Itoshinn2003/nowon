@@ -1,6 +1,7 @@
-import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { DestinationPin } from "@/src/components/map/DestinationPin";
 import { Pressable, Text, View } from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 const minimalMapStyle = [
   {
@@ -97,6 +98,43 @@ const minimalMapStyle = [
   },
 ];
 
+const japaneseDatingProfileImage = require("../../assets/images/dating-profile-japanese-man.png");
+const japaneseDatingProfileWomanImage = require("../../assets/images/dating-profile-japanese-woman.png");
+const japaneseDatingProfileLiveImage = require("../../assets/images/dating-profile-japanese-man-live.png");
+
+const mockDestinationPins = [
+  {
+    id: "marunouchi-drink",
+    category: "drink" as const,
+    coordinate: {
+      latitude: 35.68272,
+      longitude: 139.76487,
+    },
+    imageSource: japaneseDatingProfileImage,
+    remainingRatio: 0.78,
+  },
+  {
+    id: "yaesu-live",
+    category: "live" as const,
+    coordinate: {
+      latitude: 35.67969,
+      longitude: 139.77149,
+    },
+    imageSource: japaneseDatingProfileLiveImage,
+    remainingRatio: 0.46,
+  },
+  {
+    id: "nihonbashi-drink",
+    category: "drink" as const,
+    coordinate: {
+      latitude: 35.68498,
+      longitude: 139.77406,
+    },
+    imageSource: japaneseDatingProfileWomanImage,
+    remainingRatio: 0.25,
+  },
+];
+
 export default function TabOneScreen() {
   return (
     <View className="flex-1 bg-white">
@@ -113,7 +151,22 @@ export default function TabOneScreen() {
         showsUserLocation
         showsCompass={false}
         showsMyLocationButton={false}
-      />
+      >
+        {mockDestinationPins.map((pin) => (
+          <Marker
+            key={`${pin.id}-dating-profile-v2`}
+            coordinate={pin.coordinate}
+            anchor={{ x: 0.5, y: 0.5 }}
+            tracksViewChanges
+          >
+            <DestinationPin
+              category={pin.category}
+              imageSource={pin.imageSource}
+              remainingRatio={pin.remainingRatio}
+            />
+          </Marker>
+        ))}
+      </MapView>
 
       <View className="absolute left-5 right-5 top-14 gap-3">
         <View className="h-12 flex-row items-center gap-3 rounded-2xl bg-white/95 px-4 shadow-md">
@@ -131,6 +184,7 @@ export default function TabOneScreen() {
             { label: "今日", active: true },
             { label: "ご飯", active: false },
             { label: "飲み", active: false },
+            { label: "ライブ", active: false },
             { label: "カフェ", active: false },
           ].map((category) => (
             <Pressable
