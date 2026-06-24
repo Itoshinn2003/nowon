@@ -1,4 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import type { ComponentProps } from "react";
 import { useState } from "react";
 import { Image, ImageSourcePropType, StyleSheet, View } from "react-native";
 
@@ -6,25 +7,34 @@ export type DestinationPinCategory = "drink" | "live";
 
 type Props = {
   category: DestinationPinCategory;
+  categoryColor?: string;
+  categoryIcon?: ComponentProps<typeof FontAwesome>["name"];
   imageSource: ImageSourcePropType;
   remainingRatio: number;
 };
 
-const PIN_SIZE = 64;
-const FACE_SIZE = 44;
+const PIN_SIZE = 68;
+const FACE_SIZE = 48;
 const RING_WIDTH = 6;
 
-const categoryStyles: Record<DestinationPinCategory, { color: string }> = {
+const categoryStyles: Record<
+  DestinationPinCategory,
+  { color: string; icon: ComponentProps<typeof FontAwesome>["name"] }
+> = {
   drink: {
     color: "#14B8A6",
+    icon: "glass",
   },
   live: {
     color: "#F97316",
+    icon: "music",
   },
 };
 
 export function DestinationPin({
   category,
+  categoryColor,
+  categoryIcon,
   imageSource,
   remainingRatio,
 }: Props) {
@@ -33,6 +43,8 @@ export function DestinationPin({
   const rightRotation = progress <= 0.5 ? -135 + progress * 360 : 45;
   const leftRotation = progress <= 0.5 ? -135 : -135 + (progress - 0.5) * 360;
   const accent = categoryStyles[category];
+  const ringColor = categoryColor ?? accent.color;
+  const iconName = categoryIcon ?? accent.icon;
 
   return (
     <View style={styles.wrap}>
@@ -43,8 +55,8 @@ export function DestinationPin({
             style={[
               styles.rightProgressArc,
               {
-                borderTopColor: accent.color,
-                borderRightColor: accent.color,
+                borderTopColor: ringColor,
+                borderRightColor: ringColor,
                 transform: [{ rotate: `${rightRotation}deg` }],
               },
             ]}
@@ -55,8 +67,8 @@ export function DestinationPin({
             style={[
               styles.leftProgressArc,
               {
-                borderTopColor: accent.color,
-                borderLeftColor: accent.color,
+                borderTopColor: ringColor,
+                borderLeftColor: ringColor,
                 transform: [{ rotate: `${leftRotation}deg` }],
               },
             ]}
@@ -73,6 +85,9 @@ export function DestinationPin({
               onError={() => setHasImageError(true)}
             />
           )}
+        </View>
+        <View style={[styles.categoryBadge, { backgroundColor: ringColor }]}>
+          <FontAwesome name={iconName} size={10} color="#FFFFFF" />
         </View>
       </View>
     </View>
@@ -94,8 +109,13 @@ const styles = StyleSheet.create({
     width: PIN_SIZE,
     height: PIN_SIZE,
     borderWidth: RING_WIDTH,
-    borderColor: "#D7DDE7",
+    borderColor: "#FFFFFF",
     borderRadius: PIN_SIZE / 2,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    elevation: 5,
   },
   leftHalfMask: {
     position: "absolute",
@@ -142,13 +162,25 @@ const styles = StyleSheet.create({
     borderColor: "#FFFFFF",
     backgroundColor: "#EEF2F7",
     shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.18,
-    shadowRadius: 5,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 5,
   },
   faceImage: {
     width: "100%",
     height: "100%",
+  },
+  categoryBadge: {
+    position: "absolute",
+    right: 2,
+    bottom: 2,
+    width: 22,
+    height: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
   },
 });
