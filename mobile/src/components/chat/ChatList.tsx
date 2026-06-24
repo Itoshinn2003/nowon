@@ -14,7 +14,7 @@ export function ChatList({ chats, onPressChat }: Props) {
     <FlatList
       data={chats}
       keyExtractor={(item) => item.id}
-      contentContainerClassName="pb-6"
+      contentContainerClassName="gap-3 px-4 pb-6"
       renderItem={({ item }) => (
         <ChatListItem chat={item} onPress={onPressChat} />
       )}
