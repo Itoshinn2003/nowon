@@ -2,7 +2,7 @@ import { Text, View } from "react-native";
 
 export function ChatEmptyState() {
   return (
-    <View className="flex-1 items-center justify-center px-6 py-20">
+    <View className="items-center justify-center rounded-lg border border-gray-200 bg-white px-6 py-20">
       <Text className="text-base font-bold text-gray-900">
         チャットはまだありません
       </Text>

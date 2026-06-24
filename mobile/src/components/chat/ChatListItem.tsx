@@ -1,6 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Pressable, Text, View } from "react-native";
 
+import { colors } from "@/src/constants/colors";
 import type { ChatPreview } from "@/src/types/chat";
 
 type Props = {
@@ -11,11 +12,15 @@ type Props = {
 export function ChatListItem({ chat, onPress }: Props) {
   return (
     <Pressable
-      className="flex-row items-center gap-3 border-b border-gray-100 px-5 py-4"
+      className="flex-row items-center gap-3 rounded-lg border bg-white p-4"
+      style={{ borderColor: colors.border }}
       onPress={() => onPress(chat.id)}
     >
-      <View className="h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-        <Text className="text-base font-bold text-blue-700">
+      <View
+        className="h-12 w-12 items-center justify-center rounded-full"
+        style={{ backgroundColor: colors.stateSoft }}
+      >
+        <Text className="text-base font-bold" style={{ color: colors.state }}>
           {chat.initials}
         </Text>
       </View>
@@ -32,9 +37,10 @@ export function ChatListItem({ chat, onPress }: Props) {
         </View>
 
         <View className="flex-row items-center gap-1">
-          <FontAwesome name="tag" size={11} color="#2563EB" />
+          <FontAwesome name="tag" size={11} color={colors.state} />
           <Text
-            className="text-xs font-semibold text-blue-600"
+            className="text-xs font-semibold"
+            style={{ color: colors.state }}
             numberOfLines={1}
           >
             {chat.relatedPost}
@@ -46,7 +52,10 @@ export function ChatListItem({ chat, onPress }: Props) {
             {chat.lastMessage}
           </Text>
           {chat.unreadCount > 0 ? (
-            <View className="min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 py-0.5">
+            <View
+              className="min-w-5 items-center justify-center rounded-full px-1.5 py-0.5"
+              style={{ backgroundColor: colors.state }}
+            >
               <Text className="text-xs font-bold text-white">
                 {chat.unreadCount}
               </Text>
