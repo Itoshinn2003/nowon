@@ -1,0 +1,80 @@
+export type RecruitmentType = "one_to_one" | "group";
+
+export type AllowedGenderPolicy = "male_only" | "female_only" | "anyone";
+
+export type RecruitmentStatus = "active" | "closed" | "expired" | "matched";
+
+export type RecruitmentCategory = {
+  id: number;
+  name: string;
+  key: string;
+  display_order: number;
+  color: string | null;
+  icon_name: string | null;
+};
+
+export type Recruitment = {
+  id: number;
+  user_id: number;
+  recruitment_type: RecruitmentType;
+  recruitment_category_id: number;
+  purpose: string;
+  vibe: string;
+  recruiting_people_min: number;
+  recruiting_people_max: number;
+  application_limit: number;
+  allowed_gender_policy: AllowedGenderPolicy;
+  latitude: string;
+  longitude: string;
+  description: string | null;
+  status: RecruitmentStatus;
+  expires_at: string;
+  closed_at: string | null;
+  safety_confirmed: boolean;
+};
+
+export type RecruitmentCategoriesResponse = {
+  recruitment_categories: RecruitmentCategory[];
+};
+
+export type RecruitmentResponse = {
+  recruitment: Recruitment;
+};
+
+export type CreateRecruitmentParams = {
+  recruitmentType: RecruitmentType;
+  recruitmentCategoryId: number;
+  purpose: string;
+  vibe: string;
+  recruitingPeopleMin: number;
+  recruitingPeopleMax: number;
+  allowedGenderPolicy: AllowedGenderPolicy;
+  latitude: number;
+  longitude: number;
+  description?: string;
+  safetyConfirmed: boolean;
+};
+
+export type RecruitmentFormState = {
+  recruitmentType: RecruitmentType;
+  recruitmentCategoryId: number | null;
+  purpose: string;
+  vibe: string;
+  recruitingPeopleMin: string;
+  recruitingPeopleMax: string;
+  allowedGenderPolicy: AllowedGenderPolicy;
+  description: string;
+  safetyConfirmed: boolean;
+};
+
+export type RecruitmentCreateFormProps = {
+  recruitmentType: RecruitmentType;
+  categories: RecruitmentCategory[];
+  latitude?: string;
+  longitude?: string;
+  errorMessage: string;
+  isLoadingCategories: boolean;
+  isSubmitting: boolean;
+  onCancel: () => void;
+  onSubmit: (formData: RecruitmentFormState) => void;
+};
