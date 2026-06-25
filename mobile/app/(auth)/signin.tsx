@@ -23,7 +23,6 @@ export default function SignInScreen() {
 
   async function handleSubmit(formData: SignInFormState) {
     startSubmitting();
-    console.log("aaa");
     try {
       const { authHeaders } = await signIn(formData);
       await saveSession(authHeaders);

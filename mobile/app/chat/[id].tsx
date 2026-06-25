@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { BackIconButton } from "@/src/components/ui/BackIconButton";
 import { colors } from "@/src/constants/colors";
 
 export default function ChatDetailScreen() {
@@ -14,13 +15,7 @@ export default function ChatDetailScreen() {
         className="mx-4 mt-2 flex-row items-center gap-3 rounded-lg border bg-white px-3 py-3"
         style={{ borderColor: colors.border }}
       >
-        <Pressable
-          className="h-10 w-10 items-center justify-center rounded-full"
-          style={{ backgroundColor: "#F3F4F6" }}
-          onPress={() => router.back()}
-        >
-          <FontAwesome name="angle-left" size={24} color="#111827" />
-        </Pressable>
+        <BackIconButton onPress={() => router.back()} />
 
         <View className="min-w-0 flex-1">
           <Text className="text-base font-bold text-gray-900" numberOfLines={1}>

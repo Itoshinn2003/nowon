@@ -20,14 +20,14 @@ import {
 
 type Props = {
   profile: UserProfile | null;
-  isSaving: boolean;
+  isSubmitting: boolean;
   onCancel: () => void;
   onSubmit: (formData: ProfileFormState) => void;
 };
 
 export function ProfileEditForm({
   profile,
-  isSaving,
+  isSubmitting,
   onCancel,
   onSubmit,
 }: Props) {
@@ -45,8 +45,8 @@ export function ProfileEditForm({
       formData.nickname.trim().length > 0 &&
       formData.nickname.trim().length <= 12 &&
       formData.birthDate <= new Date() &&
-      !isSaving,
-    [formData.birthDate, formData.nickname, isSaving]
+      !isSubmitting,
+    [formData.birthDate, formData.nickname, isSubmitting]
   );
 
   function updateForm<K extends keyof ProfileFormState>(
@@ -175,7 +175,7 @@ export function ProfileEditForm({
           className="flex-1"
           buttonColor={colors.textPrimary}
           disabled={!canSubmit}
-          loading={isSaving}
+          loading={isSubmitting}
           onPress={handleSubmit}
         >
           保存

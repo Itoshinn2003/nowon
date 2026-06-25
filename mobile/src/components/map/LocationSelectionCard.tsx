@@ -22,10 +22,11 @@ export function LocationSelectionCard({
     onRequestCancel();
   }
 
-  function handleCreatePress() {
+  function handleCreatePress(recruitmentType: "one_to_one" | "group") {
     router.push({
       pathname: "/recruitments/new",
       params: {
+        recruitmentType,
         latitude: selectedCoordinate.latitude.toString(),
         longitude: selectedCoordinate.longitude.toString(),
       },
@@ -71,10 +72,18 @@ export function LocationSelectionCard({
         <Button
           mode="contained"
           className="flex-1"
-          buttonColor="#0891B2"
-          onPress={handleCreatePress}
+          buttonColor="#2F8F7B"
+          onPress={() => handleCreatePress("one_to_one")}
         >
-          募集を作成
+          1人用
+        </Button>
+        <Button
+          mode="contained"
+          className="flex-1"
+          buttonColor="#0891B2"
+          onPress={() => handleCreatePress("group")}
+        >
+          複数人用
         </Button>
       </View>
     </View>

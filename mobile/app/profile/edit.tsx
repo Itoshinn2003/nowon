@@ -1,5 +1,4 @@
 import { router } from "expo-router";
-import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -8,6 +7,7 @@ import { ProfileEditForm } from "@/src/components/profile/ProfileEditForm";
 import { LoadingScreen } from "@/src/components/ui/LoadingScreen";
 import { colors } from "@/src/constants/colors";
 import { useProfile } from "@/src/hooks/useProfile";
+import { useSubmitState } from "@/src/hooks/useSubmitState";
 import type { ProfileFormState } from "@/src/types/profile";
 import {
   errorMessageFromError,
@@ -16,10 +16,14 @@ import {
 
 export default function ProfileEditScreen() {
   const { profile, isLoading, errorMessage, setErrorMessage } = useProfile();
-  const [isSaving, setIsSaving] = useState(false);
+  const {
+    isSubmitting,
+    startSubmitting,
+    finishSubmitting,
+  } = useSubmitState();
 
   async function handleSubmit(formData: ProfileFormState) {
-    setIsSaving(true);
+    startSubmitting();
     setErrorMessage("");
 
     try {
@@ -36,7 +40,7 @@ export default function ProfileEditScreen() {
         errorMessageFromError(error, "プロフィールを保存できませんでした")
       );
     } finally {
-      setIsSaving(false);
+      finishSubmitting();
     }
   }
 
@@ -59,7 +63,7 @@ export default function ProfileEditScreen() {
 
           <ProfileEditForm
             profile={profile}
-            isSaving={isSaving}
+            isSubmitting={isSubmitting}
             onCancel={() => router.back()}
             onSubmit={handleSubmit}
           />
