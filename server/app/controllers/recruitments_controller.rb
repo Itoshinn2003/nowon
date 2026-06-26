@@ -1,6 +1,14 @@
 class RecruitmentsController < ApplicationController
   before_action :authenticate_user!
 
+  def index
+    recruitments = Recruitment.active_now.includes(:recruitment_category).order(created_at: :desc)
+
+    render json: {
+      recruitments: recruitments.map { |recruitment| serialized_recruitment(recruitment) }
+    }
+  end
+
   def create
     recruitment = current_user.recruitments.build(recruitment_params)
 
@@ -38,6 +46,7 @@ class RecruitmentsController < ApplicationController
       user_id: recruitment.user_id,
       recruitment_type: recruitment.recruitment_type,
       recruitment_category_id: recruitment.recruitment_category_id,
+      recruitment_category: serialized_category(recruitment.recruitment_category),
       purpose: recruitment.purpose,
       vibe: recruitment.vibe,
       recruiting_people_min: recruitment.recruiting_people_min,
@@ -51,6 +60,19 @@ class RecruitmentsController < ApplicationController
       expires_at: recruitment.expires_at&.iso8601,
       closed_at: recruitment.closed_at&.iso8601,
       safety_confirmed: recruitment.safety_confirmed
+    }
+  end
+
+  def serialized_category(category)
+    return nil unless category
+
+    {
+      id: category.id,
+      name: category.name,
+      key: category.key,
+      display_order: category.display_order,
+      color: category.color,
+      icon_name: category.icon_name
     }
   end
 end

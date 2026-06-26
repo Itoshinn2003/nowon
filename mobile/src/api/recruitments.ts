@@ -10,6 +10,7 @@ import type {
   CreateRecruitmentParams,
   RecruitmentCategoriesResponse,
   RecruitmentResponse,
+  RecruitmentsResponse,
 } from "@/src/types/recruitment";
 import { APPLICATION_LIMIT } from "@/src/utils/recruitment";
 
@@ -19,6 +20,19 @@ export async function getRecruitmentCategories() {
   );
 
   return response.data.recruitment_categories;
+}
+
+export async function getRecruitments() {
+  const response = await axios.get<RecruitmentsResponse>(
+    `${env.apiBaseUrl}/recruitments`,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data.recruitments;
 }
 
 export async function createRecruitment(params: CreateRecruitmentParams) {

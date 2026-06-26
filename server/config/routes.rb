@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   end
 
   resources :recruitment_categories, only: %i[ index ]
-  resources :recruitments, only: %i[ create ]
+  resources :recruitments, only: %i[ index create ]
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

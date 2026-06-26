@@ -18,6 +18,7 @@ export type Recruitment = {
   user_id: number;
   recruitment_type: RecruitmentType;
   recruitment_category_id: number;
+  recruitment_category: RecruitmentCategory | null;
   purpose: string;
   vibe: string;
   recruiting_people_min: number;
@@ -39,6 +40,10 @@ export type RecruitmentCategoriesResponse = {
 
 export type RecruitmentResponse = {
   recruitment: Recruitment;
+};
+
+export type RecruitmentsResponse = {
+  recruitments: Recruitment[];
 };
 
 export type CreateRecruitmentParams = {
