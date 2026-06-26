@@ -1,6 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { Pressable, View } from "react-native";
 import MapView, {
   Marker,
   PROVIDER_GOOGLE,
@@ -15,6 +16,7 @@ import {
   type MapFilterGender,
 } from "@/src/components/map/MapFilterSheet";
 import { colors } from "@/src/constants/colors";
+import { useRecruitments } from "@/src/hooks/useRecruitments";
 
 const minimalMapStyle = [
   {
@@ -125,6 +127,7 @@ const minimalMapStyle = [
 ];
 
 export default function MapScreen() {
+  const { recruitments, reloadRecruitments } = useRecruitments();
   // 条件コンポーネントを表示しているか
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] =
@@ -133,6 +136,12 @@ export default function MapScreen() {
   // 地図をタッチして座標を出しているか
   const [selectedCoordinate, setSelectedCoordinate] = useState<LatLng | null>(
     null
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      reloadRecruitments();
+    }, [reloadRecruitments])
   );
 
   return (
@@ -152,6 +161,24 @@ export default function MapScreen() {
         showsCompass={false}
         showsMyLocationButton={true}
       >
+        {recruitments.map((recruitment) => {
+          const latitude = Number(recruitment.latitude);
+          const longitude = Number(recruitment.longitude);
+
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return null;
+          }
+
+          return (
+            <Marker
+              key={`recruitment-${recruitment.id}`}
+              coordinate={{ latitude, longitude }}
+              title={recruitment.purpose}
+              description={recruitment.vibe}
+            />
+          );
+        })}
+
         {selectedCoordinate ? (
           <Marker
             key={`draft-${selectedCoordinate.latitude}-${selectedCoordinate.longitude}`}
@@ -163,19 +190,6 @@ export default function MapScreen() {
           </Marker>
         ) : null}
       </MapView>
-
-      {/* <View className="absolute left-5 top-14 rounded-full bg-white/95 px-5 py-3 shadow-md">
-        <Text className="text-xs font-bold text-gray-500">東京駅周辺</Text>
-        <View className="flex-row items-center gap-2">
-          <View
-            className="h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: "#38D996" }}
-          />
-          <Text className="text-lg font-bold text-gray-950">
-            いま近くにいる
-          </Text>
-        </View>
-      </View> */}
 
       {/* 右上のフィルタボタン */}
       <Pressable
