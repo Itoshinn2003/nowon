@@ -1,6 +1,6 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import MapView, {
   Marker,
@@ -14,122 +14,18 @@ import {
   MapFilterSheet,
   type MapFilterCategory,
   type MapFilterGender,
+  type MapFilterRecruitmentType,
 } from "@/src/components/map/MapFilterSheet";
 import { colors } from "@/src/constants/colors";
+import { minimalMapStyle } from "@/src/constants/map";
+import { useRecruitmentCategories } from "@/src/hooks/useRecruitmentCategories";
 import {
   useMyRecruitments,
   useRecruitments,
 } from "@/src/hooks/useRecruitments";
 
-const minimalMapStyle = [
-  {
-    elementType: "geometry",
-    stylers: [{ color: "#F8EEDF" }],
-  },
-  {
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#4C5C57" }],
-  },
-  {
-    elementType: "labels.text.stroke",
-    stylers: [{ color: "#FFF9F1" }],
-  },
-  {
-    featureType: "administrative",
-    elementType: "geometry.stroke",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "administrative.neighborhood",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#2F433B" }],
-  },
-  {
-    featureType: "poi",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "poi.park",
-    stylers: [{ visibility: "on" }],
-  },
-  {
-    featureType: "poi.park",
-    elementType: "geometry",
-    stylers: [{ color: "#AEE3A4" }],
-  },
-  {
-    featureType: "poi.park",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#2F6B38" }],
-  },
-  {
-    featureType: "road",
-    elementType: "geometry",
-    stylers: [{ color: "#FFF9F0" }],
-  },
-  {
-    featureType: "road",
-    elementType: "geometry.stroke",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "road",
-    elementType: "labels.icon",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "road.highway",
-    elementType: "geometry",
-    stylers: [{ color: "#FFD97A" }],
-  },
-  {
-    featureType: "road.highway",
-    elementType: "geometry.stroke",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "road.local",
-    elementType: "geometry",
-    stylers: [{ visibility: "simplified" }, { color: "#FFF5E8" }],
-  },
-  {
-    featureType: "road.local",
-    elementType: "labels",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "road.arterial",
-    elementType: "geometry",
-    stylers: [{ color: "#FFFCF6" }],
-  },
-  {
-    featureType: "road",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#8A8175" }],
-  },
-  {
-    featureType: "transit",
-    elementType: "geometry",
-    stylers: [{ color: "#D7C6AF" }],
-  },
-  {
-    featureType: "transit.station",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#315C78" }],
-  },
-  {
-    featureType: "water",
-    elementType: "geometry",
-    stylers: [{ color: "#99DEF7" }],
-  },
-  {
-    featureType: "water",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#267493" }],
-  },
-];
-
 export default function MapScreen() {
+  const { categories } = useRecruitmentCategories();
   const { recruitments, reloadRecruitments } = useRecruitments({
     loadOnMount: false,
   });
@@ -144,6 +40,8 @@ export default function MapScreen() {
   const [selectedCategory, setSelectedCategory] =
     useState<MapFilterCategory>("all");
   const [selectedGender, setSelectedGender] = useState<MapFilterGender>("all");
+  const [selectedRecruitmentType, setSelectedRecruitmentType] =
+    useState<MapFilterRecruitmentType>("all");
   // 地図をタッチして座標を出しているか
   const [selectedCoordinate, setSelectedCoordinate] = useState<LatLng | null>(
     null
@@ -161,6 +59,42 @@ export default function MapScreen() {
   );
 
   const hasActiveRecruitment = myRecruitments.length > 0;
+  const filteredRecruitments = useMemo(
+    () =>
+      recruitments.filter((recruitment) => {
+        if (
+          selectedCategory !== "all" &&
+          recruitment.recruitment_category_id !== selectedCategory
+        ) {
+          return false;
+        }
+
+        if (
+          selectedGender === "male" &&
+          recruitment.allowed_gender_policy === "female_only"
+        ) {
+          return false;
+        }
+
+        if (
+          selectedGender === "female" &&
+          recruitment.allowed_gender_policy === "male_only"
+        ) {
+          return false;
+        }
+
+        if (
+          selectedRecruitmentType !== "all" &&
+          recruitment.recruitment_type !== selectedRecruitmentType
+        ) {
+          return false;
+        }
+
+        return true;
+      }),
+    [recruitments, selectedCategory, selectedGender, selectedRecruitmentType]
+  );
+
   useEffect(() => {
     if (hasActiveRecruitment) {
       setSelectedCoordinate(null);
@@ -188,7 +122,7 @@ export default function MapScreen() {
         showsCompass={false}
         showsMyLocationButton={true}
       >
-        {recruitments.map((recruitment) => {
+        {filteredRecruitments.map((recruitment) => {
           const latitude = Number(recruitment.latitude);
           const longitude = Number(recruitment.longitude);
 
@@ -251,11 +185,14 @@ export default function MapScreen() {
       {/* フィルターカード */}
       <MapFilterSheet
         visible={isFilterVisible}
+        categories={categories}
         selectedCategory={selectedCategory}
         selectedGender={selectedGender}
+        selectedRecruitmentType={selectedRecruitmentType}
         onApply={(filters) => {
           setSelectedCategory(filters.category);
           setSelectedGender(filters.gender);
+          setSelectedRecruitmentType(filters.recruitmentType);
         }}
         onClose={() => setIsFilterVisible(false)}
       />
