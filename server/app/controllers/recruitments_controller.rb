@@ -9,6 +9,18 @@ class RecruitmentsController < ApplicationController
     }
   end
 
+  def mine
+    recruitments = current_user
+                   .recruitments
+                   .active_now
+                   .includes(:recruitment_category)
+                   .order(created_at: :desc)
+
+    render json: {
+      recruitments: recruitments.map { |recruitment| serialized_recruitment(recruitment) }
+    }
+  end
+
   def create
     recruitment = current_user.recruitments.build(recruitment_params)
 
@@ -19,6 +31,23 @@ class RecruitmentsController < ApplicationController
     end
   rescue ArgumentError => e
     render json: { errors: { base: [ e.message ] } }, status: :unprocessable_entity
+  end
+
+  def cancel
+    recruitment = current_user.recruitments.find(params[:id])
+
+    unless recruitment.active?
+      render json: {
+        errors: { base: [ "募集はすでに終了しています" ] }
+      }, status: :unprocessable_entity
+      return
+    end
+
+    if recruitment.update(status: :closed, closed_at: Time.current)
+      render json: { recruitment: serialized_recruitment(recruitment) }
+    else
+      render json: { errors: recruitment.errors.to_hash }, status: :unprocessable_entity
+    end
   end
 
   private

@@ -35,6 +35,19 @@ export async function getRecruitments() {
   return response.data.recruitments;
 }
 
+export async function getMyRecruitments() {
+  const response = await axios.get<RecruitmentsResponse>(
+    `${env.apiBaseUrl}/recruitments/mine`,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data.recruitments;
+}
+
 export async function createRecruitment(params: CreateRecruitmentParams) {
   const response = await axios.post<RecruitmentResponse>(
     `${env.apiBaseUrl}/recruitments`,
@@ -54,6 +67,20 @@ export async function createRecruitment(params: CreateRecruitmentParams) {
         safety_confirmed: params.safetyConfirmed,
       },
     },
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data.recruitment;
+}
+
+export async function cancelRecruitment(recruitmentId: number) {
+  const response = await axios.patch<RecruitmentResponse>(
+    `${env.apiBaseUrl}/recruitments/${recruitmentId}/cancel`,
+    undefined,
     {
       headers: await requestAuthHeaders(),
     }

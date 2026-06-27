@@ -1,10 +1,28 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { getRecruitments } from "@/src/api/recruitments";
+import {
+  getMyRecruitments,
+  getRecruitments,
+} from "@/src/api/recruitments";
 import type { Recruitment } from "@/src/types/recruitment";
 import { errorMessageFromError } from "@/src/utils/profile";
 
-export function useRecruitments() {
+type UseRecruitmentsOptions = {
+  loadOnMount?: boolean;
+};
+
+export function useRecruitments(options: UseRecruitmentsOptions = {}) {
+  return useRecruitmentLoader(getRecruitments, options);
+}
+
+export function useMyRecruitments(options: UseRecruitmentsOptions = {}) {
+  return useRecruitmentLoader(getMyRecruitments, options);
+}
+
+function useRecruitmentLoader(
+  loadRecruitmentsRequest: () => Promise<Recruitment[]>,
+  { loadOnMount = true }: UseRecruitmentsOptions
+) {
   const [recruitments, setRecruitments] = useState<Recruitment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -14,7 +32,7 @@ export function useRecruitments() {
     setErrorMessage("");
 
     try {
-      const loadedRecruitments = await getRecruitments();
+      const loadedRecruitments = await loadRecruitmentsRequest();
       setRecruitments(loadedRecruitments);
     } catch (error) {
       setErrorMessage(
@@ -23,11 +41,13 @@ export function useRecruitments() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [loadRecruitmentsRequest]);
 
   useEffect(() => {
+    if (!loadOnMount) return;
+
     loadRecruitments();
-  }, [loadRecruitments]);
+  }, [loadOnMount, loadRecruitments]);
 
   return {
     recruitments,

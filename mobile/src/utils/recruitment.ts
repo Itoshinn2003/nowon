@@ -1,4 +1,5 @@
 import type {
+  Recruitment,
   RecruitmentFormState,
   RecruitmentType,
 } from "@/src/types/recruitment";
@@ -27,4 +28,17 @@ export function defaultRecruitmentFormState(
 
 export function numberFromInput(value: string) {
   return Number.parseInt(value, 10);
+}
+
+export function recruitmentPeopleLabel(
+  recruitment: Pick<
+    Recruitment,
+    "recruitment_type" | "recruiting_people_min" | "recruiting_people_max"
+  >
+) {
+  if (recruitment.recruitment_type === "one_to_one") {
+    return "1人募集";
+  }
+
+  return `${recruitment.recruiting_people_min}〜${recruitment.recruiting_people_max}人募集`;
 }
