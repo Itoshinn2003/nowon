@@ -9,7 +9,10 @@ Rails.application.routes.draw do
   end
 
   resources :recruitment_categories, only: %i[ index ]
-  resources :recruitments, only: %i[ index create ]
+  resources :recruitments, only: %i[ index create ] do
+    get :mine, on: :collection
+    patch :cancel, on: :member
+  end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

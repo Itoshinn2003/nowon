@@ -4,6 +4,10 @@ export type AllowedGenderPolicy = "male_only" | "female_only" | "anyone";
 
 export type RecruitmentStatus = "active" | "closed" | "expired" | "matched";
 
+export type RecruitmentListTab = "mine" | "applied" | "matched";
+
+export type RecruitmentSummaryStatusTone = "active" | "pending" | "matched";
+
 export type RecruitmentCategory = {
   id: number;
   name: string;

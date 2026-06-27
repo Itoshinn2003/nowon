@@ -1,7 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
-import { Pressable, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Pressable, Text, View } from "react-native";
 import MapView, {
   Marker,
   PROVIDER_GOOGLE,
@@ -16,7 +16,10 @@ import {
   type MapFilterGender,
 } from "@/src/components/map/MapFilterSheet";
 import { colors } from "@/src/constants/colors";
-import { useRecruitments } from "@/src/hooks/useRecruitments";
+import {
+  useMyRecruitments,
+  useRecruitments,
+} from "@/src/hooks/useRecruitments";
 
 const minimalMapStyle = [
   {
@@ -127,7 +130,15 @@ const minimalMapStyle = [
 ];
 
 export default function MapScreen() {
-  const { recruitments, reloadRecruitments } = useRecruitments();
+  const { recruitments, reloadRecruitments } = useRecruitments({
+    loadOnMount: false,
+  });
+  const {
+    recruitments: myRecruitments,
+    reloadRecruitments: reloadMyRecruitments,
+  } = useMyRecruitments({
+    loadOnMount: false,
+  });
   // 条件コンポーネントを表示しているか
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] =
@@ -140,9 +151,21 @@ export default function MapScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      reloadRecruitments();
-    }, [reloadRecruitments])
+      async function loadRecruitments() {
+        await reloadRecruitments();
+        await reloadMyRecruitments();
+      }
+
+      loadRecruitments();
+    }, [reloadMyRecruitments, reloadRecruitments])
   );
+
+  const hasActiveRecruitment = myRecruitments.length > 0;
+  useEffect(() => {
+    if (hasActiveRecruitment) {
+      setSelectedCoordinate(null);
+    }
+  }, [hasActiveRecruitment]);
 
   return (
     <View className="flex-1 bg-white">
@@ -150,7 +173,11 @@ export default function MapScreen() {
         provider={PROVIDER_GOOGLE}
         customMapStyle={minimalMapStyle}
         style={{ flex: 1 }}
-        onPress={(event) => setSelectedCoordinate(event.nativeEvent.coordinate)}
+        onPress={(event) => {
+          if (hasActiveRecruitment) return;
+
+          setSelectedCoordinate(event.nativeEvent.coordinate);
+        }}
         initialRegion={{
           latitude: 35.681236,
           longitude: 139.767125,
@@ -179,7 +206,7 @@ export default function MapScreen() {
           );
         })}
 
-        {selectedCoordinate ? (
+        {selectedCoordinate && !hasActiveRecruitment ? (
           <Marker
             key={`draft-${selectedCoordinate.latitude}-${selectedCoordinate.longitude}`}
             coordinate={selectedCoordinate}
@@ -205,10 +232,21 @@ export default function MapScreen() {
       </Pressable>
 
       {/* 募集を立てますか？カード */}
-      <LocationSelectionCard
-        coordinate={selectedCoordinate}
-        onRequestCancel={() => setSelectedCoordinate(null)}
-      />
+      {!hasActiveRecruitment ? (
+        <LocationSelectionCard
+          coordinate={selectedCoordinate}
+          onRequestCancel={() => setSelectedCoordinate(null)}
+        />
+      ) : null}
+
+      <View
+        className="absolute bottom-6 left-4 right-4 rounded-lg border bg-white/95 px-4 py-3 shadow-sm"
+        style={{ borderColor: colors.border }}
+      >
+        <Text className="text-center text-sm font-bold text-gray-900">
+          地図をタッチして募集を立ててみよう！
+        </Text>
+      </View>
 
       {/* フィルターカード */}
       <MapFilterSheet
