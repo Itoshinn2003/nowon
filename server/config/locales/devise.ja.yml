@@ -1,5 +1,7 @@
 ja:
   devise:
+    failure:
+      unauthenticated: "ログインしてください。"
     mailer:
       confirmation_instructions:
         subject: "メールアドレス確認のお願い"
