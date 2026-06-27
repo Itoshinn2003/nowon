@@ -4,7 +4,11 @@ import { getProfile } from "@/src/api/profile";
 import type { UserProfile } from "@/src/types/profile";
 import { errorMessageFromError } from "@/src/utils/profile";
 
-export function useProfile() {
+type UseProfileOptions = {
+  loadOnMount?: boolean;
+};
+
+export function useProfile({ loadOnMount = true }: UseProfileOptions = {}) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -26,8 +30,10 @@ export function useProfile() {
   }, []);
 
   useEffect(() => {
+    if (!loadOnMount) return;
+
     loadProfile();
-  }, [loadProfile]);
+  }, [loadOnMount, loadProfile]);
 
   return {
     profile,

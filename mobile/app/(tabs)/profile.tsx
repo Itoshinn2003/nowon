@@ -1,15 +1,20 @@
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import { ScrollView, Text, View } from "react-native";
+import { Button } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ProfileView } from "@/src/components/profile/ProfileView";
 import { LoadingScreen } from "@/src/components/ui/LoadingScreen";
 import { colors } from "@/src/constants/colors";
 import { useProfile } from "@/src/hooks/useProfile";
+import { useAuthStore } from "@/src/stores/authStore";
 
 export default function ProfileScreen() {
-  const { profile, isLoading, errorMessage, reloadProfile } = useProfile();
+  const { clearSession } = useAuthStore();
+  const { profile, isLoading, errorMessage, reloadProfile } = useProfile({
+    loadOnMount: false,
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -19,6 +24,11 @@ export default function ProfileScreen() {
 
   if (isLoading) {
     return <LoadingScreen />;
+  }
+
+  async function handleLogout() {
+    await clearSession();
+    router.replace("/signin");
   }
 
   return (
@@ -35,6 +45,15 @@ export default function ProfileScreen() {
           </View>
 
           <ProfileView profile={profile} />
+
+          <Button
+            mode="outlined"
+            textColor="#DC2626"
+            style={{ borderColor: "#FCA5A5", backgroundColor: colors.surface }}
+            onPress={handleLogout}
+          >
+            ログアウト
+          </Button>
         </View>
       </ScrollView>
     </SafeAreaView>
