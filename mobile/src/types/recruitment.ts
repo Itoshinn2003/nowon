@@ -4,6 +4,8 @@ export type AllowedGenderPolicy = "male_only" | "female_only" | "anyone";
 
 export type RecruitmentStatus = "active" | "closed" | "expired" | "matched";
 
+export type RecruitmentApplicationStatus = "pending" | "accepted" | "rejected";
+
 export type RecruitmentListTab = "mine" | "applied" | "matched";
 
 export type RecruitmentSummaryStatusTone = "active" | "pending" | "matched";
@@ -28,6 +30,7 @@ export type Recruitment = {
   recruiting_people_min: number;
   recruiting_people_max: number;
   application_limit: number;
+  active_application_count: number;
   allowed_gender_policy: AllowedGenderPolicy;
   latitude: string;
   longitude: string;
@@ -48,6 +51,25 @@ export type RecruitmentResponse = {
 
 export type RecruitmentsResponse = {
   recruitments: Recruitment[];
+};
+
+export type RecruitmentApplication = {
+  id: number;
+  recruitment_id: number;
+  user_id: number;
+  status: RecruitmentApplicationStatus;
+  message: string | null;
+  recruitment: Recruitment | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RecruitmentApplicationResponse = {
+  application: RecruitmentApplication;
+};
+
+export type RecruitmentApplicationsResponse = {
+  applications: RecruitmentApplication[];
 };
 
 export type CreateRecruitmentParams = {

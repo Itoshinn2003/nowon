@@ -4,6 +4,7 @@ class Recruitment < ApplicationRecord
 
   belongs_to :user
   belongs_to :recruitment_category
+  has_many :recruitment_applications, dependent: :destroy
 
   enum :recruitment_type, {
     one_to_one: 0,

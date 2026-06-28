@@ -20,7 +20,7 @@ export type MapFilterRecruitmentType = "all" | "one_to_one" | "group";
 
 type Props = {
   visible: boolean;
-  categories: RecruitmentCategory[];
+  categories?: RecruitmentCategory[];
   selectedCategory: MapFilterCategory;
   selectedGender: MapFilterGender;
   selectedRecruitmentType: MapFilterRecruitmentType;
@@ -34,7 +34,7 @@ type Props = {
 
 export function MapFilterSheet({
   visible,
-  categories,
+  categories = [],
   selectedCategory,
   selectedGender,
   selectedRecruitmentType,

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_25_000400) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_27_000000) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -51,6 +51,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_000400) do
     t.index ["user_profile_id"], name: "index_profile_photos_on_user_profile_id"
     t.check_constraint "`position` > 0", name: "chk_profile_photos_position"
     t.check_constraint "`status` in (_utf8mb4'pending',_utf8mb4'approved',_utf8mb4'rejected')", name: "chk_profile_photos_status"
+  end
+
+  create_table "recruitment_applications", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "message"
+    t.bigint "recruitment_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["recruitment_id", "status"], name: "index_recruitment_applications_on_recruitment_id_and_status"
+    t.index ["recruitment_id", "user_id"], name: "index_recruitment_applications_on_recruitment_id_and_user_id", unique: true
+    t.index ["recruitment_id"], name: "index_recruitment_applications_on_recruitment_id"
+    t.index ["user_id", "status"], name: "index_recruitment_applications_on_user_id_and_status"
+    t.index ["user_id"], name: "index_recruitment_applications_on_user_id"
+    t.check_constraint "`status` in (0,1,2)", name: "chk_recruitment_applications_status"
   end
 
   create_table "recruitment_categories", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -114,6 +129,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_000400) do
 
   create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.boolean "allow_password_change", default: false
+    t.datetime "confirmation_sent_at"
+    t.string "confirmation_token"
+    t.datetime "confirmed_at"
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -126,7 +144,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_000400) do
     t.string "reset_password_token"
     t.text "tokens"
     t.string "uid", default: "", null: false
+    t.string "unconfirmed_email"
     t.datetime "updated_at", null: false
+    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
@@ -135,6 +155,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_000400) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "profile_photos", "user_profiles"
+  add_foreign_key "recruitment_applications", "recruitments"
+  add_foreign_key "recruitment_applications", "users"
   add_foreign_key "recruitments", "recruitment_categories"
   add_foreign_key "recruitments", "users"
   add_foreign_key "user_profiles", "users"
