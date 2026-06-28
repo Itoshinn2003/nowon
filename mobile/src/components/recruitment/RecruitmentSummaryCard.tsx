@@ -13,10 +13,12 @@ export function RecruitmentSummaryCard({
   recruitment,
   onCancelRecruitment,
   isCanceling = false,
+  isCancelDisabled = false,
 }: {
   recruitment: Recruitment;
   onCancelRecruitment?: (recruitment: Recruitment) => void;
   isCanceling?: boolean;
+  isCancelDisabled?: boolean;
 }) {
   const category = recruitment.recruitment_category?.name ?? "未分類";
   const statusLabel = "募集中";
@@ -54,7 +56,7 @@ export function RecruitmentSummaryCard({
           mode="outlined"
           textColor="#DC2626"
           loading={isCanceling}
-          disabled={isCanceling}
+          disabled={isCanceling || isCancelDisabled}
           style={{ borderColor: "#FCA5A5" }}
           onPress={() => onCancelRecruitment(recruitment)}
         >

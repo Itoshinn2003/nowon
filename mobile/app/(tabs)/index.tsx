@@ -1,7 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import MapView, {
   Marker,
   PROVIDER_GOOGLE,
@@ -16,13 +16,20 @@ import {
   type MapFilterGender,
   type MapFilterRecruitmentType,
 } from "@/src/components/map/MapFilterSheet";
+import { RecruitmentApplicationCard } from "@/src/components/map/RecruitmentApplicationCard";
+import { createRecruitmentApplication } from "@/src/api/recruitmentApplications";
 import { colors } from "@/src/constants/colors";
 import { minimalMapStyle } from "@/src/constants/map";
 import { useRecruitmentCategories } from "@/src/hooks/useRecruitmentCategories";
+import { useRecruitmentApplications } from "@/src/hooks/useRecruitmentApplications";
+import { useSubmitState } from "@/src/hooks/useSubmitState";
 import {
   useMyRecruitments,
   useRecruitments,
 } from "@/src/hooks/useRecruitments";
+import { useProfile } from "@/src/hooks/useProfile";
+import type { Recruitment } from "@/src/types/recruitment";
+import { errorMessageFromError } from "@/src/utils/profile";
 
 export default function MapScreen() {
   const { categories } = useRecruitmentCategories();
@@ -35,6 +42,10 @@ export default function MapScreen() {
   } = useMyRecruitments({
     loadOnMount: false,
   });
+  const { applications, reloadApplications } = useRecruitmentApplications({
+    loadOnMount: false,
+  });
+  const { profile, reloadProfile } = useProfile({ loadOnMount: false });
   // 条件コンポーネントを表示しているか
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] =
@@ -46,16 +57,32 @@ export default function MapScreen() {
   const [selectedCoordinate, setSelectedCoordinate] = useState<LatLng | null>(
     null
   );
+  const [selectedRecruitment, setSelectedRecruitment] =
+    useState<Recruitment | null>(null);
+  const [applyErrorMessage, setApplyErrorMessage] = useState("");
+  const [applicationMessage, setApplicationMessage] = useState("");
+  const {
+    isSubmitting,
+    startSubmitting,
+    finishSubmitting,
+  } = useSubmitState();
 
   useFocusEffect(
     useCallback(() => {
       async function loadRecruitments() {
         await reloadRecruitments();
         await reloadMyRecruitments();
+        await reloadApplications();
+        await reloadProfile();
       }
 
       loadRecruitments();
-    }, [reloadMyRecruitments, reloadRecruitments])
+    }, [
+      reloadApplications,
+      reloadMyRecruitments,
+      reloadProfile,
+      reloadRecruitments,
+    ])
   );
 
   const hasActiveRecruitment = myRecruitments.length > 0;
@@ -101,6 +128,39 @@ export default function MapScreen() {
     }
   }, [hasActiveRecruitment]);
 
+  const selectedRecruitmentApplication = selectedRecruitment
+    ? applications.find(
+        (application) => application.recruitment_id === selectedRecruitment.id
+      )
+    : undefined;
+  const selectedRecruitmentIsOwn = selectedRecruitment
+    ? myRecruitments.some(
+        (recruitment) => recruitment.id === selectedRecruitment.id
+      )
+    : false;
+  const selectedRecruitmentGenderAllowed = selectedRecruitment
+    ? canApplyByGender(selectedRecruitment, profile?.gender)
+    : false;
+  const selectedRecruitmentIsOpen = selectedRecruitment
+    ? isRecruitmentOpen(selectedRecruitment)
+    : false;
+  const selectedRecruitmentIsFull = selectedRecruitment
+    ? selectedRecruitment.active_application_count >=
+      selectedRecruitment.application_limit
+    : false;
+  const selectedRecruitmentDisabledReason = selectedRecruitment
+    ? applyDisabledReason({
+        hasApplication: Boolean(selectedRecruitmentApplication),
+        isOwnRecruitment: selectedRecruitmentIsOwn,
+        isGenderAllowed: selectedRecruitmentGenderAllowed,
+        hasProfile: Boolean(profile),
+        isRecruitmentOpen: selectedRecruitmentIsOpen,
+        isApplicationLimitReached: selectedRecruitmentIsFull,
+      })
+    : "";
+  const canApplyToSelectedRecruitment =
+    Boolean(selectedRecruitment) && selectedRecruitmentDisabledReason === "";
+
   return (
     <View className="flex-1 bg-white">
       <MapView
@@ -108,8 +168,10 @@ export default function MapScreen() {
         customMapStyle={minimalMapStyle}
         style={{ flex: 1 }}
         onPress={(event) => {
+          if (event.nativeEvent.action === "marker-press") return;
           if (hasActiveRecruitment) return;
 
+          setSelectedRecruitment(null);
           setSelectedCoordinate(event.nativeEvent.coordinate);
         }}
         initialRegion={{
@@ -136,6 +198,13 @@ export default function MapScreen() {
               coordinate={{ latitude, longitude }}
               title={recruitment.purpose}
               description={recruitment.vibe}
+              stopPropagation
+              onPress={() => {
+                setSelectedRecruitment(recruitment);
+                setSelectedCoordinate(null);
+                setApplicationMessage("");
+                setApplyErrorMessage("");
+              }}
             />
           );
         })}
@@ -173,6 +242,28 @@ export default function MapScreen() {
         />
       ) : null}
 
+      {selectedRecruitment ? (
+        <RecruitmentApplicationCard
+          recruitment={selectedRecruitment}
+          applyLabel={selectedRecruitmentApplication ? "応募済み" : "応募する"}
+          applicationMessage={
+            selectedRecruitmentApplication?.message ?? applicationMessage
+          }
+          isApplyDisabled={!canApplyToSelectedRecruitment}
+          isApplying={isSubmitting}
+          disabledReason={
+            applyErrorMessage || selectedRecruitmentDisabledReason
+          }
+          onChangeApplicationMessage={setApplicationMessage}
+          onApply={() => applyToRecruitment(selectedRecruitment)}
+          onClose={() => {
+            setSelectedRecruitment(null);
+            setApplicationMessage("");
+            setApplyErrorMessage("");
+          }}
+        />
+      ) : null}
+
       <View
         className="absolute bottom-6 left-4 right-4 rounded-lg border bg-white/95 px-4 py-3 shadow-sm"
         style={{ borderColor: colors.border }}
@@ -198,4 +289,101 @@ export default function MapScreen() {
       />
     </View>
   );
+
+  async function applyToRecruitment(recruitment: Recruitment) {
+    if (!canApplyToSelectedRecruitment || isSubmitting) {
+      return;
+    }
+
+    setApplyErrorMessage("");
+    startSubmitting();
+
+    try {
+      await createRecruitmentApplication(recruitment.id, {
+        message: applicationMessage,
+      });
+      await reloadRecruitments();
+      await reloadApplications();
+      setSelectedRecruitment(null);
+      setApplicationMessage("");
+      Alert.alert("応募しました", "募集主の返答をお待ちください。");
+    } catch (error) {
+      setApplyErrorMessage(
+        errorMessageFromError(error, "応募できませんでした")
+      );
+    } finally {
+      finishSubmitting();
+    }
+  }
+}
+
+function canApplyByGender(
+  recruitment: Recruitment,
+  gender: string | undefined
+) {
+  if (recruitment.allowed_gender_policy === "anyone") {
+    return Boolean(gender);
+  }
+
+  if (recruitment.allowed_gender_policy === "male_only") {
+    return gender === "male";
+  }
+
+  if (recruitment.allowed_gender_policy === "female_only") {
+    return gender === "female";
+  }
+
+  return false;
+}
+
+function isRecruitmentOpen(recruitment: Recruitment) {
+  const expiresAt = Date.parse(recruitment.expires_at);
+
+  return (
+    recruitment.status === "active" &&
+    Number.isFinite(expiresAt) &&
+    expiresAt > Date.now()
+  );
+}
+
+function applyDisabledReason({
+  hasApplication,
+  isOwnRecruitment,
+  isGenderAllowed,
+  hasProfile,
+  isRecruitmentOpen,
+  isApplicationLimitReached,
+}: {
+  hasApplication: boolean;
+  isOwnRecruitment: boolean;
+  isGenderAllowed: boolean;
+  hasProfile: boolean;
+  isRecruitmentOpen: boolean;
+  isApplicationLimitReached: boolean;
+}) {
+  if (isOwnRecruitment) {
+    return "自分の募集には応募できません";
+  }
+
+  if (hasApplication) {
+    return "この募集には応募済みです";
+  }
+
+  if (!hasProfile) {
+    return "プロフィール作成後に応募できます";
+  }
+
+  if (!isRecruitmentOpen) {
+    return "この募集は終了しています";
+  }
+
+  if (isApplicationLimitReached) {
+    return "応募上限に達しています";
+  }
+
+  if (!isGenderAllowed) {
+    return "募集条件に合わないため応募できません";
+  }
+
+  return "";
 }

@@ -6,10 +6,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { RecruitmentListTabs } from "@/src/components/recruitment/RecruitmentListTabs";
 import { RecruitmentSummaryList } from "@/src/components/recruitment/RecruitmentSummaryList";
 import { LoadingScreen } from "@/src/components/ui/LoadingScreen";
+import { deleteRecruitmentApplication } from "@/src/api/recruitmentApplications";
 import { cancelRecruitment } from "@/src/api/recruitments";
 import { colors } from "@/src/constants/colors";
+import { useRecruitmentApplications } from "@/src/hooks/useRecruitmentApplications";
 import { useMyRecruitments } from "@/src/hooks/useRecruitments";
-import type { Recruitment, RecruitmentListTab } from "@/src/types/recruitment";
+import type {
+  Recruitment,
+  RecruitmentApplication,
+  RecruitmentListTab,
+} from "@/src/types/recruitment";
 import { errorMessageFromError } from "@/src/utils/profile";
 
 const emptyMessages: Record<RecruitmentListTab, string> = {
@@ -24,26 +30,61 @@ export default function PostsScreen() {
   const [cancelingRecruitmentId, setCancelingRecruitmentId] = useState<
     number | null
   >(null);
+  const [cancelingApplicationId, setCancelingApplicationId] = useState<
+    number | null
+  >(null);
   const {
     recruitments: myRecruitments,
     isLoading,
     errorMessage,
     reloadRecruitments,
   } = useMyRecruitments({ loadOnMount: false });
+  const {
+    applications,
+    isLoading: isLoadingApplications,
+    errorMessage: applicationsErrorMessage,
+    reloadApplications,
+  } = useRecruitmentApplications({ loadOnMount: false });
 
   useFocusEffect(
     useCallback(() => {
-      reloadRecruitments();
-    }, [reloadRecruitments])
+      async function loadRecruitmentLists() {
+        await reloadRecruitments();
+        await reloadApplications();
+      }
+
+      loadRecruitmentLists();
+    }, [reloadApplications, reloadRecruitments])
   );
 
+  const appliedRecruitments = useMemo(
+    () =>
+      applications
+        .map((application) => application.recruitment)
+        .filter((recruitment): recruitment is Recruitment =>
+          Boolean(recruitment)
+        ),
+    [applications]
+  );
+  const cancelingAppliedRecruitmentId =
+    applications.find((application) => application.id === cancelingApplicationId)
+      ?.recruitment_id ?? null;
   const recruitments = useMemo(
-    () => (selectedTab === "mine" ? myRecruitments : []),
-    [myRecruitments, selectedTab]
-  );
-  const displayedErrorMessage = cancelErrorMessage || errorMessage;
+    () => {
+      if (selectedTab === "mine") return myRecruitments;
+      if (selectedTab === "applied") return appliedRecruitments;
 
-  if (isLoading && selectedTab === "mine") {
+      return [];
+    },
+    [appliedRecruitments, myRecruitments, selectedTab]
+  );
+  const displayedErrorMessage =
+    cancelErrorMessage || errorMessage || applicationsErrorMessage;
+
+  if (
+    (isLoading && selectedTab === "mine") ||
+    (isLoadingApplications && selectedTab === "applied")
+  ) {
     return <LoadingScreen />;
   }
 
@@ -64,6 +105,30 @@ export default function PostsScreen() {
     );
   }
 
+  function handleCancelApplication(recruitment: Recruitment) {
+    if (cancelingApplicationId !== null) return;
+
+    const application = applications.find(
+      (currentApplication) =>
+        currentApplication.recruitment_id === recruitment.id
+    );
+
+    if (!application || !isApplicationCancelable(application)) return;
+
+    Alert.alert(
+      "応募キャンセル",
+      `「${recruitment.purpose}」への応募をキャンセルしますか？`,
+      [
+        { text: "戻る", style: "cancel" },
+        {
+          text: "キャンセルする",
+          style: "destructive",
+          onPress: () => requestCancelApplication(application),
+        },
+      ]
+    );
+  }
+
   async function requestCancelRecruitment(recruitment: Recruitment) {
     setCancelErrorMessage("");
     setCancelingRecruitmentId(recruitment.id);
@@ -78,6 +143,31 @@ export default function PostsScreen() {
     } finally {
       setCancelingRecruitmentId(null);
     }
+  }
+
+  async function requestCancelApplication(application: RecruitmentApplication) {
+    setCancelErrorMessage("");
+    setCancelingApplicationId(application.id);
+
+    try {
+      await deleteRecruitmentApplication(application.id);
+      await reloadApplications();
+    } catch (error) {
+      setCancelErrorMessage(
+        errorMessageFromError(error, "応募をキャンセルできませんでした")
+      );
+    } finally {
+      setCancelingApplicationId(null);
+    }
+  }
+
+  function canCancelAppliedRecruitment(recruitment: Recruitment) {
+    const application = applications.find(
+      (currentApplication) =>
+        currentApplication.recruitment_id === recruitment.id
+    );
+
+    return application ? isApplicationCancelable(application) : false;
   }
 
   return (
@@ -105,12 +195,32 @@ export default function PostsScreen() {
             recruitments={recruitments}
             emptyMessage={emptyMessages[selectedTab]}
             onCancelRecruitment={
-              selectedTab === "mine" ? handleCancelRecruitment : undefined
+              selectedTab === "mine"
+                ? handleCancelRecruitment
+                : selectedTab === "applied"
+                  ? handleCancelApplication
+                  : undefined
             }
-            cancelingRecruitmentId={cancelingRecruitmentId}
+            canCancelRecruitment={
+              selectedTab === "applied"
+                ? canCancelAppliedRecruitment
+                : undefined
+            }
+            cancelingRecruitmentId={
+              selectedTab === "mine"
+                ? cancelingRecruitmentId
+                : cancelingAppliedRecruitmentId
+            }
           />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function isApplicationCancelable(application: RecruitmentApplication) {
+  const isPendingOrAccepted =
+    application.status === "pending" || application.status === "accepted";
+
+  return isPendingOrAccepted && application.recruitment?.status !== "matched";
 }

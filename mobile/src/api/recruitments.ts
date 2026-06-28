@@ -8,18 +8,29 @@ import {
 import type { AuthHeaders } from "@/src/types/auth";
 import type {
   CreateRecruitmentParams,
+  RecruitmentCategory,
   RecruitmentCategoriesResponse,
   RecruitmentResponse,
   RecruitmentsResponse,
 } from "@/src/types/recruitment";
 import { APPLICATION_LIMIT } from "@/src/utils/recruitment";
 
-export async function getRecruitmentCategories() {
-  const response = await axios.get<RecruitmentCategoriesResponse>(
+export async function getRecruitmentCategories(): Promise<
+  RecruitmentCategory[]
+> {
+  const response = await axios.get<
+    RecruitmentCategoriesResponse | RecruitmentCategory[]
+  >(
     `${env.apiBaseUrl}/recruitment_categories`
   );
 
-  return response.data.recruitment_categories;
+  const data = response.data;
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return data?.recruitment_categories ?? [];
 }
 
 export async function getRecruitments() {

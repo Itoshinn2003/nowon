@@ -81,6 +81,7 @@ class RecruitmentsController < ApplicationController
       recruiting_people_min: recruitment.recruiting_people_min,
       recruiting_people_max: recruitment.recruiting_people_max,
       application_limit: recruitment.application_limit,
+      active_application_count: recruitment.recruitment_applications.active_for_limit.count,
       allowed_gender_policy: recruitment.allowed_gender_policy,
       latitude: recruitment.latitude.to_s,
       longitude: recruitment.longitude.to_s,
