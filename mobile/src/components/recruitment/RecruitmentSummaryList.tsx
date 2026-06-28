@@ -9,12 +9,14 @@ export function RecruitmentSummaryList({
   recruitments,
   emptyMessage,
   onCancelRecruitment,
+  onPressRecruitment,
   canCancelRecruitment,
   cancelingRecruitmentId,
 }: {
   recruitments: Recruitment[];
   emptyMessage: string;
   onCancelRecruitment?: (recruitment: Recruitment) => void;
+  onPressRecruitment?: (recruitment: Recruitment) => void;
   canCancelRecruitment?: (recruitment: Recruitment) => boolean;
   cancelingRecruitmentId?: number | null;
 }) {
@@ -29,6 +31,7 @@ export function RecruitmentSummaryList({
           key={recruitment.id}
           recruitment={recruitment}
           onCancelRecruitment={onCancelRecruitment}
+          onPress={onPressRecruitment}
           isCanceling={cancelingRecruitmentId === recruitment.id}
           isCancelDisabled={
             Boolean(onCancelRecruitment) &&

@@ -12,7 +12,7 @@ class RecruitmentsController < ApplicationController
   def mine
     recruitments = current_user
                    .recruitments
-                   .active_now
+                   .visible_to_owner
                    .includes(:recruitment_category)
                    .order(created_at: :desc)
 
@@ -44,6 +44,23 @@ class RecruitmentsController < ApplicationController
     end
 
     if recruitment.update(status: :closed, closed_at: Time.current)
+      render json: { recruitment: serialized_recruitment(recruitment) }
+    else
+      render json: { errors: recruitment.errors.to_hash }, status: :unprocessable_entity
+    end
+  end
+
+  def match
+    recruitment = current_user.recruitments.find(params[:id])
+
+    unless recruitment.matchable?
+      render json: {
+        errors: { base: [ "マッチング開始に必要な承認人数に達していません" ] }
+      }, status: :unprocessable_entity
+      return
+    end
+
+    if recruitment.update(status: :matched, closed_at: Time.current)
       render json: { recruitment: serialized_recruitment(recruitment) }
     else
       render json: { errors: recruitment.errors.to_hash }, status: :unprocessable_entity

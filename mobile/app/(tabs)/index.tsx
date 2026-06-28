@@ -85,7 +85,7 @@ export default function MapScreen() {
     ])
   );
 
-  const hasActiveRecruitment = myRecruitments.length > 0;
+  const hasActiveRecruitment = myRecruitments.some(isRecruitmentOpen);
   const filteredRecruitments = useMemo(
     () =>
       recruitments.filter((recruitment) => {

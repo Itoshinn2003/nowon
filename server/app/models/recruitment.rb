@@ -50,6 +50,21 @@ class Recruitment < ApplicationRecord
   validate :only_one_active_recruitment_per_user, on: :create
 
   scope :active_now, -> { active.where("expires_at > ?", Time.current) }
+  scope :visible_to_owner, -> { active_now.or(matched) }
+
+  def accepted_application_count
+    recruitment_applications.accepted.count
+  end
+
+  def matchable?
+    active? &&
+      expires_at.future? &&
+      accepted_application_count >= recruiting_people_min
+  end
+
+  def max_accepted?
+    accepted_application_count >= recruiting_people_max
+  end
 
   private
 

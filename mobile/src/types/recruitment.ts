@@ -60,6 +60,13 @@ export type RecruitmentApplication = {
   status: RecruitmentApplicationStatus;
   message: string | null;
   recruitment: Recruitment | null;
+  applicant_profile: {
+    id: number;
+    nickname: string;
+    age: number;
+    gender: string;
+    bio: string | null;
+  } | null;
   created_at: string;
   updated_at: string;
 };

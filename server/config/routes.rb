@@ -12,10 +12,13 @@ Rails.application.routes.draw do
   resources :recruitments, only: %i[ index create ] do
     get :mine, on: :collection
     patch :cancel, on: :member
-    resources :applications, only: %i[ create ], controller: "recruitment_applications"
+    patch :match, on: :member
+    resources :applications, only: %i[ index create ], controller: "recruitment_applications"
   end
   resources :recruitment_applications, only: %i[ destroy ] do
     get :mine, on: :collection
+    patch :accept, on: :member
+    patch :cancel_accept, on: :member
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
