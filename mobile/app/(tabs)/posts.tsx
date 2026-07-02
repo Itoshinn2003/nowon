@@ -4,10 +4,16 @@ import { Alert, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { RecruitmentListTabs } from "@/src/components/recruitment/RecruitmentListTabs";
+import { RecruitmentDetailSheet } from "@/src/components/recruitment/RecruitmentDetailSheet";
 import { RecruitmentSummaryList } from "@/src/components/recruitment/RecruitmentSummaryList";
 import { LoadingScreen } from "@/src/components/ui/LoadingScreen";
-import { deleteRecruitmentApplication } from "@/src/api/recruitmentApplications";
-import { cancelRecruitment } from "@/src/api/recruitments";
+import {
+  acceptRecruitmentApplication,
+  cancelAcceptRecruitmentApplication,
+  deleteRecruitmentApplication,
+  getRecruitmentApplications,
+} from "@/src/api/recruitmentApplications";
+import { cancelRecruitment, matchRecruitment } from "@/src/api/recruitments";
 import { colors } from "@/src/constants/colors";
 import { useRecruitmentApplications } from "@/src/hooks/useRecruitmentApplications";
 import { useMyRecruitments } from "@/src/hooks/useRecruitments";
@@ -31,6 +37,26 @@ export default function PostsScreen() {
     number | null
   >(null);
   const [cancelingApplicationId, setCancelingApplicationId] = useState<
+    number | null
+  >(null);
+  const [selectedRecruitment, setSelectedRecruitment] =
+    useState<Recruitment | null>(null);
+  const [selectedRecruitmentTab, setSelectedRecruitmentTab] =
+    useState<RecruitmentListTab>("mine");
+  const [selectedRecruitmentApplications, setSelectedRecruitmentApplications] =
+    useState<RecruitmentApplication[]>([]);
+  const [
+    isLoadingSelectedRecruitmentApplications,
+    setIsLoadingSelectedRecruitmentApplications,
+  ] = useState(false);
+  const [
+    selectedRecruitmentApplicationsErrorMessage,
+    setSelectedRecruitmentApplicationsErrorMessage,
+  ] = useState("");
+  const [processingApplicationId, setProcessingApplicationId] = useState<
+    number | null
+  >(null);
+  const [matchingRecruitmentId, setMatchingRecruitmentId] = useState<
     number | null
   >(null);
   const {
@@ -71,8 +97,16 @@ export default function PostsScreen() {
       ?.recruitment_id ?? null;
   const recruitments = useMemo(
     () => {
-      if (selectedTab === "mine") return myRecruitments;
+      if (selectedTab === "mine") {
+        return myRecruitments.filter(isRecruitmentOpen);
+      }
+
       if (selectedTab === "applied") return appliedRecruitments;
+      if (selectedTab === "matched") {
+        return myRecruitments.filter(
+          (recruitment) => recruitment.status === "matched"
+        );
+      }
 
       return [];
     },
@@ -129,6 +163,17 @@ export default function PostsScreen() {
     );
   }
 
+  function handlePressRecruitment(recruitment: Recruitment) {
+    setSelectedRecruitment(recruitment);
+    setSelectedRecruitmentTab(selectedTab);
+    setSelectedRecruitmentApplications([]);
+    setSelectedRecruitmentApplicationsErrorMessage("");
+
+    if (selectedTab === "mine" || selectedTab === "matched") {
+      loadSelectedRecruitmentApplications(recruitment);
+    }
+  }
+
   async function requestCancelRecruitment(recruitment: Recruitment) {
     setCancelErrorMessage("");
     setCancelingRecruitmentId(recruitment.id);
@@ -161,6 +206,105 @@ export default function PostsScreen() {
     }
   }
 
+  async function loadSelectedRecruitmentApplications(recruitment: Recruitment) {
+    setIsLoadingSelectedRecruitmentApplications(true);
+    setSelectedRecruitmentApplicationsErrorMessage("");
+
+    try {
+      const loadedApplications = await getRecruitmentApplications(
+        recruitment.id
+      );
+      setSelectedRecruitmentApplications(loadedApplications);
+    } catch (error) {
+      setSelectedRecruitmentApplicationsErrorMessage(
+        errorMessageFromError(error, "応募一覧を取得できませんでした")
+      );
+    } finally {
+      setIsLoadingSelectedRecruitmentApplications(false);
+    }
+  }
+
+  async function requestAcceptApplication(application: RecruitmentApplication) {
+    if (processingApplicationId !== null) return;
+
+    setProcessingApplicationId(application.id);
+    setSelectedRecruitmentApplicationsErrorMessage("");
+
+    try {
+      const updatedApplication = await acceptRecruitmentApplication(
+        application.id
+      );
+
+      if (updatedApplication.recruitment) {
+        setSelectedRecruitment(updatedApplication.recruitment);
+      }
+
+      if (selectedRecruitment) {
+        await loadSelectedRecruitmentApplications(selectedRecruitment);
+      }
+
+      await reloadRecruitments();
+    } catch (error) {
+      setSelectedRecruitmentApplicationsErrorMessage(
+        errorMessageFromError(error, "応募を承認できませんでした")
+      );
+    } finally {
+      setProcessingApplicationId(null);
+    }
+  }
+
+  async function requestCancelAcceptApplication(
+    application: RecruitmentApplication
+  ) {
+    if (processingApplicationId !== null) return;
+
+    setProcessingApplicationId(application.id);
+    setSelectedRecruitmentApplicationsErrorMessage("");
+
+    try {
+      const updatedApplication = await cancelAcceptRecruitmentApplication(
+        application.id
+      );
+
+      if (updatedApplication.recruitment) {
+        setSelectedRecruitment(updatedApplication.recruitment);
+      }
+
+      if (selectedRecruitment) {
+        await loadSelectedRecruitmentApplications(selectedRecruitment);
+      }
+
+      await reloadRecruitments();
+    } catch (error) {
+      setSelectedRecruitmentApplicationsErrorMessage(
+        errorMessageFromError(error, "承認をキャンセルできませんでした")
+      );
+    } finally {
+      setProcessingApplicationId(null);
+    }
+  }
+
+  async function requestMatchRecruitment(recruitment: Recruitment) {
+    if (matchingRecruitmentId !== null) return;
+
+    setMatchingRecruitmentId(recruitment.id);
+    setSelectedRecruitmentApplicationsErrorMessage("");
+
+    try {
+      const matchedRecruitment = await matchRecruitment(recruitment.id);
+      setSelectedRecruitment(matchedRecruitment);
+      setSelectedRecruitmentTab("matched");
+      await loadSelectedRecruitmentApplications(matchedRecruitment);
+      await reloadRecruitments();
+    } catch (error) {
+      setSelectedRecruitmentApplicationsErrorMessage(
+        errorMessageFromError(error, "マッチングを開始できませんでした")
+      );
+    } finally {
+      setMatchingRecruitmentId(null);
+    }
+  }
+
   function canCancelAppliedRecruitment(recruitment: Recruitment) {
     const application = applications.find(
       (currentApplication) =>
@@ -188,12 +332,16 @@ export default function PostsScreen() {
 
           <RecruitmentListTabs
             selectedTab={selectedTab}
-            onSelectTab={setSelectedTab}
+            onSelectTab={(tab) => {
+              setSelectedTab(tab);
+              setSelectedRecruitment(null);
+            }}
           />
 
           <RecruitmentSummaryList
             recruitments={recruitments}
             emptyMessage={emptyMessages[selectedTab]}
+            onPressRecruitment={handlePressRecruitment}
             onCancelRecruitment={
               selectedTab === "mine"
                 ? handleCancelRecruitment
@@ -214,6 +362,28 @@ export default function PostsScreen() {
           />
         </View>
       </ScrollView>
+      <RecruitmentDetailSheet
+        visible={Boolean(selectedRecruitment)}
+        recruitment={selectedRecruitment}
+        mode={selectedRecruitmentTab}
+        applications={selectedRecruitmentApplications}
+        application={
+          selectedRecruitment
+            ? applications.find(
+                (currentApplication) =>
+                  currentApplication.recruitment_id === selectedRecruitment.id
+              )
+            : undefined
+        }
+        isLoadingApplications={isLoadingSelectedRecruitmentApplications}
+        applicationsErrorMessage={selectedRecruitmentApplicationsErrorMessage}
+        processingApplicationId={processingApplicationId}
+        isMatching={matchingRecruitmentId === selectedRecruitment?.id}
+        onAcceptApplication={requestAcceptApplication}
+        onCancelAcceptApplication={requestCancelAcceptApplication}
+        onMatchRecruitment={requestMatchRecruitment}
+        onClose={() => setSelectedRecruitment(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -223,4 +393,14 @@ function isApplicationCancelable(application: RecruitmentApplication) {
     application.status === "pending" || application.status === "accepted";
 
   return isPendingOrAccepted && application.recruitment?.status !== "matched";
+}
+
+function isRecruitmentOpen(recruitment: Recruitment) {
+  const expiresAt = Date.parse(recruitment.expires_at);
+
+  return (
+    recruitment.status === "active" &&
+    Number.isFinite(expiresAt) &&
+    expiresAt > Date.now()
+  );
 }

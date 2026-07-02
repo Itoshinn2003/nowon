@@ -49,6 +49,19 @@ export async function getMyRecruitmentApplications() {
   return response.data.applications;
 }
 
+export async function getRecruitmentApplications(recruitmentId: number) {
+  const response = await axios.get<RecruitmentApplicationsResponse>(
+    `${env.apiBaseUrl}/recruitments/${recruitmentId}/applications`,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data.applications;
+}
+
 export async function deleteRecruitmentApplication(applicationId: number) {
   const response = await axios.delete(
     `${env.apiBaseUrl}/recruitment_applications/${applicationId}`,
@@ -58,6 +71,34 @@ export async function deleteRecruitmentApplication(applicationId: number) {
   );
 
   await persistResponseAuthHeaders(response);
+}
+
+export async function acceptRecruitmentApplication(applicationId: number) {
+  const response = await axios.patch<RecruitmentApplicationResponse>(
+    `${env.apiBaseUrl}/recruitment_applications/${applicationId}/accept`,
+    undefined,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data.application;
+}
+
+export async function cancelAcceptRecruitmentApplication(applicationId: number) {
+  const response = await axios.patch<RecruitmentApplicationResponse>(
+    `${env.apiBaseUrl}/recruitment_applications/${applicationId}/cancel_accept`,
+    undefined,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data.application;
 }
 
 async function requestAuthHeaders() {

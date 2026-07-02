@@ -1,5 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
 import { colors } from "@/src/constants/colors";
@@ -12,11 +12,13 @@ import { recruitmentPeopleLabel } from "@/src/utils/recruitment";
 export function RecruitmentSummaryCard({
   recruitment,
   onCancelRecruitment,
+  onPress,
   isCanceling = false,
   isCancelDisabled = false,
 }: {
   recruitment: Recruitment;
   onCancelRecruitment?: (recruitment: Recruitment) => void;
+  onPress?: (recruitment: Recruitment) => void;
   isCanceling?: boolean;
   isCancelDisabled?: boolean;
 }) {
@@ -29,27 +31,29 @@ export function RecruitmentSummaryCard({
       className="gap-3 rounded-lg border bg-white p-4"
       style={{ borderColor: colors.border }}
     >
-      <View className="min-w-0 gap-1">
-        <View className="flex-row items-center gap-2">
-          <Text className="text-xs font-bold text-gray-500">
-            {category}
+      <Pressable className="gap-3" onPress={() => onPress?.(recruitment)}>
+        <View className="min-w-0 gap-1">
+          <View className="flex-row items-center gap-2">
+            <Text className="text-xs font-bold text-gray-500">
+              {category}
+            </Text>
+            <StatusBadge
+              label={statusLabel}
+              tone={statusTone}
+            />
+          </View>
+          <Text className="text-base font-bold text-gray-950" numberOfLines={2}>
+            {recruitment.purpose}
           </Text>
-          <StatusBadge
-            label={statusLabel}
-            tone={statusTone}
-          />
+          <Text className="text-sm text-gray-500" numberOfLines={1}>
+            {recruitment.vibe}
+          </Text>
         </View>
-        <Text className="text-base font-bold text-gray-950" numberOfLines={2}>
-          {recruitment.purpose}
-        </Text>
-        <Text className="text-sm text-gray-500" numberOfLines={1}>
-          {recruitment.vibe}
-        </Text>
-      </View>
 
-      <View className="border-t border-gray-100 pt-3">
-        <DetailRow icon="users" text={recruitmentPeopleLabel(recruitment)} />
-      </View>
+        <View className="border-t border-gray-100 pt-3">
+          <DetailRow icon="users" text={recruitmentPeopleLabel(recruitment)} />
+        </View>
+      </Pressable>
 
       {onCancelRecruitment ? (
         <Button

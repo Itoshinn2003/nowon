@@ -102,6 +102,20 @@ export async function cancelRecruitment(recruitmentId: number) {
   return response.data.recruitment;
 }
 
+export async function matchRecruitment(recruitmentId: number) {
+  const response = await axios.patch<RecruitmentResponse>(
+    `${env.apiBaseUrl}/recruitments/${recruitmentId}/match`,
+    undefined,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data.recruitment;
+}
+
 async function requestAuthHeaders() {
   const authHeaders = await getAuthHeaders();
 

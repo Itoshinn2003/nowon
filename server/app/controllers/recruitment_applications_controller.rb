@@ -14,6 +14,18 @@ class RecruitmentApplicationsController < ApplicationController
     end
   end
 
+  def index
+    recruitment = current_user.recruitments.find(params[:recruitment_id])
+    applications = recruitment
+                   .recruitment_applications
+                   .includes(user: :user_profile)
+                   .order(created_at: :desc)
+
+    render json: {
+      applications: applications.map { |application| serialized_application(application) }
+    }
+  end
+
   def mine
     applications = current_user
                    .recruitment_applications
@@ -42,7 +54,55 @@ class RecruitmentApplicationsController < ApplicationController
     head :no_content
   end
 
+  def accept
+    application = owned_application
+    recruitment = application.recruitment
+
+    unless recruitment.active? && recruitment.expires_at.future?
+      render json: {
+        errors: { base: [ "この募集は承認できません" ] }
+      }, status: :unprocessable_entity
+      return
+    end
+
+    if !application.accepted? && recruitment.max_accepted?
+      render json: {
+        errors: { base: [ "承認人数が上限に達しています" ] }
+      }, status: :unprocessable_entity
+      return
+    end
+
+    application.update!(status: :accepted)
+    recruitment.update!(status: :matched, closed_at: Time.current) if recruitment.max_accepted?
+
+    render json: { application: serialized_application(application.reload) }
+  end
+
+  def cancel_accept
+    application = owned_application
+    recruitment = application.recruitment
+
+    if recruitment.matched?
+      render json: {
+        errors: { base: [ "マッチング後は承認をキャンセルできません" ] }
+      }, status: :unprocessable_entity
+      return
+    end
+
+    application.update!(status: :pending)
+
+    render json: { application: serialized_application(application.reload) }
+  end
+
   private
+
+  def owned_application
+    RecruitmentApplication
+      .includes(:recruitment, user: :user_profile)
+      .joins(:recruitment)
+      .where(recruitments: { user_id: current_user.id })
+      .find(params[:id])
+  end
 
   def application_params
     params.fetch(:application, params).permit(:message)
@@ -56,8 +116,21 @@ class RecruitmentApplicationsController < ApplicationController
       status: application.status,
       message: application.message,
       recruitment: serialized_recruitment(application.recruitment),
+      applicant_profile: serialized_profile(application.user.user_profile),
       created_at: application.created_at.iso8601,
       updated_at: application.updated_at.iso8601
+    }
+  end
+
+  def serialized_profile(profile)
+    return nil unless profile
+
+    {
+      id: profile.id,
+      nickname: profile.nickname,
+      age: profile.age,
+      gender: profile.gender,
+      bio: profile.bio
     }
   end
 
