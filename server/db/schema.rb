@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_27_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -37,6 +37,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_27_000000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "chat_messages", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.text "body", null: false
+    t.bigint "chat_room_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["chat_room_id", "created_at"], name: "index_chat_messages_on_chat_room_id_and_created_at"
+    t.index ["chat_room_id"], name: "index_chat_messages_on_chat_room_id"
+    t.index ["user_id"], name: "index_chat_messages_on_user_id"
+  end
+
+  create_table "chat_participants", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "chat_room_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "last_read_message_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["chat_room_id", "user_id"], name: "index_chat_participants_on_chat_room_id_and_user_id", unique: true
+    t.index ["chat_room_id"], name: "index_chat_participants_on_chat_room_id"
+    t.index ["last_read_message_id"], name: "index_chat_participants_on_last_read_message_id"
+    t.index ["user_id"], name: "index_chat_participants_on_user_id"
+  end
+
+  create_table "chat_rooms", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "recruitment_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["recruitment_id"], name: "index_chat_rooms_on_recruitment_id", unique: true
   end
 
   create_table "profile_photos", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -154,6 +184,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_27_000000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "chat_messages", "chat_rooms"
+  add_foreign_key "chat_messages", "users"
+  add_foreign_key "chat_participants", "chat_messages", column: "last_read_message_id"
+  add_foreign_key "chat_participants", "chat_rooms"
+  add_foreign_key "chat_participants", "users"
+  add_foreign_key "chat_rooms", "recruitments"
   add_foreign_key "profile_photos", "user_profiles"
   add_foreign_key "recruitment_applications", "recruitments"
   add_foreign_key "recruitment_applications", "users"

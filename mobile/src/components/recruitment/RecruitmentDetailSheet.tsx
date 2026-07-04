@@ -27,9 +27,12 @@ export function RecruitmentDetailSheet({
   applicationsErrorMessage,
   processingApplicationId,
   isMatching,
+  canShowApplications,
   onAcceptApplication,
   onCancelAcceptApplication,
   onMatchRecruitment,
+  onPressRecruitmentDetail,
+  onPressApplicantProfile,
   onClose,
 }: {
   visible: boolean;
@@ -41,9 +44,12 @@ export function RecruitmentDetailSheet({
   applicationsErrorMessage: string;
   processingApplicationId: number | null;
   isMatching: boolean;
+  canShowApplications: boolean;
   onAcceptApplication: (application: RecruitmentApplication) => void;
   onCancelAcceptApplication: (application: RecruitmentApplication) => void;
   onMatchRecruitment: (recruitment: Recruitment) => void;
+  onPressRecruitmentDetail?: (recruitment: Recruitment) => void;
+  onPressApplicantProfile?: (application: RecruitmentApplication) => void;
   onClose: () => void;
 }) {
   const { height } = useWindowDimensions();
@@ -113,7 +119,7 @@ export function RecruitmentDetailSheet({
               />
             </View>
 
-            {mode === "mine" ? (
+            {canShowApplications ? (
               <ApplicationList
                 recruitment={recruitment}
                 applications={applications}
@@ -122,18 +128,7 @@ export function RecruitmentDetailSheet({
                 processingApplicationId={processingApplicationId}
                 onAcceptApplication={onAcceptApplication}
                 onCancelAcceptApplication={onCancelAcceptApplication}
-              />
-            ) : null}
-
-            {mode === "matched" ? (
-              <ApplicationList
-                recruitment={recruitment}
-                applications={applications}
-                isLoading={isLoadingApplications}
-                errorMessage={applicationsErrorMessage}
-                processingApplicationId={processingApplicationId}
-                onAcceptApplication={onAcceptApplication}
-                onCancelAcceptApplication={onCancelAcceptApplication}
+                onPressApplicantProfile={onPressApplicantProfile}
               />
             ) : null}
 
@@ -160,27 +155,41 @@ export function RecruitmentDetailSheet({
                   最小{recruitment.recruiting_people_min}人
                 </Text>
               </View>
+              <View className="flex-row gap-3">
+                <Button
+                  mode="contained"
+                  className="flex-1"
+                  buttonColor={colors.textPrimary}
+                  style={{ minHeight: 44, borderRadius: 999 }}
+                  onPress={() => onPressRecruitmentDetail?.(recruitment)}
+                >
+                  募集詳細
+                </Button>
+                <Button
+                  mode="contained"
+                  className="flex-1"
+                  buttonColor={colors.state}
+                  loading={isMatching}
+                  disabled={!canStartMatching || isMatching || isMatched}
+                  style={{ minHeight: 44, borderRadius: 999 }}
+                  onPress={() => onMatchRecruitment(recruitment)}
+                >
+                  {isMatched ? "成立済み" : "マッチング開始"}
+                </Button>
+              </View>
+            </View>
+          ) : (
+            <View className="mb-3 border-t border-gray-100 pt-3">
               <Button
                 mode="contained"
-                buttonColor={colors.state}
-                loading={isMatching}
-                disabled={!canStartMatching || isMatching || isMatched}
-                style={{ minHeight: 44 }}
-                onPress={() => onMatchRecruitment(recruitment)}
+                buttonColor={colors.textPrimary}
+                style={{ minHeight: 44, borderRadius: 999 }}
+                onPress={() => onPressRecruitmentDetail?.(recruitment)}
               >
-                {isMatched ? "マッチング成立済み" : "マッチング開始"}
+                募集詳細
               </Button>
             </View>
-          ) : null}
-
-          <Button
-            mode="contained"
-            buttonColor={colors.textPrimary}
-            style={{ minHeight: 44 }}
-            onPress={onClose}
-          >
-            閉じる
-          </Button>
+          )}
         </View>
       </View>
     </Modal>
@@ -195,6 +204,7 @@ function ApplicationList({
   processingApplicationId,
   onAcceptApplication,
   onCancelAcceptApplication,
+  onPressApplicantProfile,
 }: {
   recruitment: Recruitment;
   applications: RecruitmentApplication[];
@@ -203,6 +213,7 @@ function ApplicationList({
   processingApplicationId: number | null;
   onAcceptApplication: (application: RecruitmentApplication) => void;
   onCancelAcceptApplication: (application: RecruitmentApplication) => void;
+  onPressApplicantProfile?: (application: RecruitmentApplication) => void;
 }) {
   const isMatched = recruitment.status === "matched";
 
@@ -222,9 +233,15 @@ function ApplicationList({
             className="gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-3"
           >
             <View className="flex-row items-center justify-between gap-2">
-              <Text className="min-w-0 flex-1 text-sm font-bold text-gray-900">
-                {application.applicant_profile?.nickname ?? "プロフィール未設定"}
-              </Text>
+              <Pressable
+                className="min-w-0 flex-1"
+                onPress={() => onPressApplicantProfile?.(application)}
+              >
+                <Text className="text-sm font-bold text-gray-900">
+                  {application.applicant_profile?.nickname ??
+                    "プロフィール未設定"}
+                </Text>
+              </Pressable>
               <Text className="text-xs text-gray-500">
                 {statusLabel(application.status)}
               </Text>

@@ -1,8 +1,10 @@
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, Switch, Text, View } from "react-native";
-import { Button, SegmentedButtons } from "react-native-paper";
+import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
+import { Button } from "react-native-paper";
 
-import { CoordinateRow } from "@/src/components/recruitment/CoordinateRow";
+import { LocationPulseMarker } from "@/src/components/map/LocationPulseMarker";
 import { RecruitmentNumberInput } from "@/src/components/recruitment/RecruitmentNumberInput";
 import { RecruitmentTextInput } from "@/src/components/recruitment/RecruitmentTextInput";
 import { colors } from "@/src/constants/colors";
@@ -80,18 +82,19 @@ export function RecruitmentCreateForm({
   }
 
   const isOneToOne = formData.recruitmentType === "one_to_one";
+  const selectedLatitude = latitude ? Number(latitude) : null;
+  const selectedLongitude = longitude ? Number(longitude) : null;
 
   return (
-    <View
-      className="gap-5 rounded-lg border bg-white p-5"
-      style={{ borderColor: colors.border }}
-    >
+    <View className="gap-5">
       {errorMessage ? (
-        <Text className="text-sm text-red-500">{errorMessage}</Text>
+        <Text className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-500">
+          {errorMessage}
+        </Text>
       ) : null}
 
-      <View className="gap-2">
-        <Text className="text-sm font-medium text-gray-700">カテゴリ</Text>
+      <View className="gap-3">
+        <Text className="text-sm font-bold text-gray-900">カテゴリ</Text>
         <View className="flex-row flex-wrap gap-2">
           {categories.map((category) => {
             const isSelected = formData.recruitmentCategoryId === category.id;
@@ -99,16 +102,17 @@ export function RecruitmentCreateForm({
             return (
               <Pressable
                 key={category.id}
-                className="rounded-full border px-3 py-2"
+                className="rounded-full px-4 py-2.5"
                 style={{
-                  borderColor: isSelected ? colors.state : colors.border,
-                  backgroundColor: isSelected ? colors.stateSoft : "#FFFFFF",
+                  backgroundColor: isSelected
+                    ? colors.textPrimary
+                    : colors.surface,
                 }}
                 onPress={() => updateForm("recruitmentCategoryId", category.id)}
               >
                 <Text
                   className="text-sm font-bold"
-                  style={{ color: isSelected ? colors.state : "#374151" }}
+                  style={{ color: isSelected ? "#FFFFFF" : "#374151" }}
                 >
                   {category.name}
                 </Text>
@@ -143,12 +147,12 @@ export function RecruitmentCreateForm({
         multiline
       />
 
-      <View className="gap-2">
-        <Text className="text-sm font-medium text-gray-700">募集人数</Text>
+      <View className="gap-3">
+        <Text className="text-sm font-bold text-gray-900">募集人数</Text>
         {isOneToOne ? (
           <Text
-            className="rounded-lg border px-4 py-3 text-base font-bold text-gray-900"
-            style={{ borderColor: colors.inputBorder }}
+            className="rounded-2xl px-4 py-4 text-base font-bold text-gray-900"
+            style={{ backgroundColor: colors.surface }}
           >
             1人
           </Text>
@@ -175,40 +179,22 @@ export function RecruitmentCreateForm({
         )}
       </View>
 
-      <View className="gap-2">
-        <Text className="text-sm font-medium text-gray-700">応募できる人</Text>
-        <SegmentedButtons
+      <View className="gap-3">
+        <Text className="text-sm font-bold text-gray-900">応募できる人</Text>
+        <GenderPolicyPicker
           value={formData.allowedGenderPolicy}
-          onValueChange={(value) =>
-            updateForm("allowedGenderPolicy", value as AllowedGenderPolicy)
-          }
-          theme={{
-            colors: {
-              primary: colors.state,
-              secondaryContainer: colors.stateSoft,
-              onSecondaryContainer: "#1F2937",
-            },
-          }}
-          buttons={[
-            { value: "male_only", label: "男性のみ" },
-            { value: "female_only", label: "女性のみ" },
-            { value: "anyone", label: "どちらも可" },
-          ]}
+          onChange={(value) => updateForm("allowedGenderPolicy", value)}
         />
       </View>
 
-      <View
-        className="gap-2 rounded-lg border p-3"
-        style={{ borderColor: colors.border, backgroundColor: "#FAFAF8" }}
-      >
-        <Text className="text-sm font-bold text-gray-900">集合候補地</Text>
-        <CoordinateRow label="latitude" value={latitude ?? "-"} />
-        <CoordinateRow label="longitude" value={longitude ?? "-"} />
-      </View>
+      <SelectedLocationPreview
+        latitude={selectedLatitude}
+        longitude={selectedLongitude}
+      />
 
       <View
-        className="flex-row items-start gap-3 rounded-lg border p-3"
-        style={{ borderColor: colors.border }}
+        className="flex-row items-start gap-3 rounded-3xl px-4 py-4"
+        style={{ backgroundColor: colors.surface }}
       >
         <Switch
           value={formData.safetyConfirmed}
@@ -226,7 +212,7 @@ export function RecruitmentCreateForm({
           mode="outlined"
           className="flex-1"
           textColor={colors.textPrimary}
-          style={{ borderColor: colors.inputBorder }}
+          style={{ borderColor: colors.inputBorder, borderRadius: 999 }}
           onPress={onCancel}
         >
           キャンセル
@@ -235,6 +221,7 @@ export function RecruitmentCreateForm({
           mode="contained"
           className="flex-1"
           buttonColor={colors.textPrimary}
+          style={{ borderRadius: 999 }}
           disabled={!canSubmit}
           loading={isSubmitting}
           onPress={handleSubmit}
@@ -245,3 +232,167 @@ export function RecruitmentCreateForm({
     </View>
   );
 }
+
+type GenderPolicyPickerProps = {
+  value: AllowedGenderPolicy;
+  onChange: (value: AllowedGenderPolicy) => void;
+};
+
+const genderPolicyOptions: Array<{
+  value: AllowedGenderPolicy;
+  label: string;
+}> = [
+  { value: "male_only", label: "男性のみ" },
+  { value: "female_only", label: "女性のみ" },
+  { value: "anyone", label: "誰でも" },
+];
+
+function GenderPolicyPicker({ value, onChange }: GenderPolicyPickerProps) {
+  return (
+    <View className="flex-row gap-2">
+      {genderPolicyOptions.map((option) => {
+        const isSelected = option.value === value;
+
+        return (
+          <Pressable
+            key={option.value}
+            className="h-12 flex-1 flex-row items-center justify-center gap-1.5 rounded-full px-3"
+            style={{
+              backgroundColor: isSelected ? colors.textPrimary : colors.surface,
+            }}
+            onPress={() => onChange(option.value)}
+          >
+            {isSelected ? (
+              <FontAwesome name="check" size={11} color="#FFFFFF" />
+            ) : null}
+            <Text
+              className="text-sm font-bold"
+              style={{ color: isSelected ? "#FFFFFF" : "#374151" }}
+              numberOfLines={1}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+type SelectedLocationPreviewProps = {
+  latitude: number | null;
+  longitude: number | null;
+};
+
+function SelectedLocationPreview({
+  latitude,
+  longitude,
+}: SelectedLocationPreviewProps) {
+  const hasCoordinate =
+    latitude !== null &&
+    longitude !== null &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude);
+
+  return (
+    <View className="gap-2">
+      <Text className="text-sm font-bold text-gray-900">集合候補地</Text>
+      <View
+        className="overflow-hidden rounded-[26px]"
+        style={{ backgroundColor: colors.surface }}
+      >
+        {hasCoordinate ? (
+          <View className="overflow-hidden rounded-[26px]">
+            <MapView
+              provider={PROVIDER_GOOGLE}
+              style={styles.mapPreview}
+              customMapStyle={locationPreviewMapStyle}
+              initialRegion={{
+                latitude,
+                longitude,
+                latitudeDelta: 0.0038,
+                longitudeDelta: 0.0038,
+              }}
+              scrollEnabled={false}
+              zoomEnabled={false}
+              pitchEnabled={false}
+              rotateEnabled={false}
+              toolbarEnabled={false}
+              showsCompass={false}
+              showsMyLocationButton={false}
+              pointerEvents="none"
+            >
+              <LocationPulseMarker
+                latitude={latitude}
+                longitude={longitude}
+                visible
+                size={54}
+              />
+            </MapView>
+          </View>
+        ) : (
+          <View
+            className="items-center justify-center rounded-[26px]"
+            style={[styles.mapPreview, { backgroundColor: colors.stateMuted }]}
+          >
+            <Text className="text-sm font-bold text-gray-500">
+              地図から場所を選んでください
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  mapPreview: {
+    height: 168,
+    width: "100%",
+    backgroundColor: colors.stateMuted,
+  },
+});
+
+const locationPreviewMapStyle = [
+  {
+    elementType: "geometry",
+    stylers: [{ color: "#F3F6F6" }],
+  },
+  {
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#667085" }],
+  },
+  {
+    elementType: "labels.text.stroke",
+    stylers: [{ color: "#FFFFFF" }],
+  },
+  {
+    featureType: "poi",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#FFFFFF" }],
+  },
+  {
+    featureType: "road",
+    elementType: "labels.icon",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "road.local",
+    elementType: "labels",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "transit",
+    elementType: "geometry",
+    stylers: [{ color: "#DDE7E5" }],
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#BFEFEB" }],
+  },
+];

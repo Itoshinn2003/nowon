@@ -1,12 +1,61 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import Feather from "@expo/vector-icons/Feather";
 import { Tabs } from "expo-router";
 import React from "react";
+import { Image, View } from "react-native";
+
+import { useProfile } from "@/src/hooks/useProfile";
 
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>["name"];
+  name: React.ComponentProps<typeof Feather>["name"];
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return (
+    <TabIconFrame>
+      <Feather size={24} {...props} />
+    </TabIconFrame>
+  );
+}
+
+function ProfileTabIcon({ color }: { color: string }) {
+  const { profile } = useProfile();
+  const photoUrl = profile?.photos[0]?.url;
+
+  if (!photoUrl) {
+    return <TabBarIcon name="user" color={color} />;
+  }
+
+  return (
+    <TabIconFrame>
+      <View
+        style={{
+          borderRadius: 13,
+          height: 26,
+          overflow: "hidden",
+          width: 26,
+        }}
+      >
+        <Image
+          source={{ uri: photoUrl }}
+          style={{ height: "100%", width: "100%" }}
+        />
+      </View>
+    </TabIconFrame>
+  );
+}
+
+function TabIconFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        height: 42,
+        justifyContent: "center",
+        width: 48,
+      }}
+    >
+      {children}
+    </View>
+  );
 }
 
 export default function TabLayout() {
@@ -14,14 +63,27 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#2563EB",
+        tabBarActiveTintColor: "#00C2A8",
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          height: 64,
+          paddingHorizontal: 34,
+          paddingTop: 8,
+        },
+        tabBarItemStyle: {
+          alignItems: "center",
+          justifyContent: "center",
+          paddingTop: 2,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "地図",
-          tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="map-pin" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -29,7 +91,7 @@ export default function TabLayout() {
         options={{
           title: "募集",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="plus-square" color={color} />
+            <TabBarIcon name="edit-3" color={color} />
           ),
         }}
       />
@@ -38,7 +100,7 @@ export default function TabLayout() {
         options={{
           title: "チャット",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="comments" color={color} />
+            <TabBarIcon name="message-circle" color={color} />
           ),
         }}
       />
@@ -46,7 +108,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "プロフィール",
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+          tabBarIcon: ({ color }) => <ProfileTabIcon color={color} />,
         }}
       />
     </Tabs>

@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  mount ActionCable.server => "/cable"
+
   mount_devise_token_auth_for "User", at: "auth", controllers: {
     confirmations: "auth/confirmations",
     registrations: "auth/registrations"
@@ -19,6 +21,10 @@ Rails.application.routes.draw do
     get :mine, on: :collection
     patch :accept, on: :member
     patch :cancel_accept, on: :member
+  end
+  resources :chat_rooms, only: %i[ index show ] do
+    patch :read, on: :member
+    resources :messages, only: %i[ index create ], controller: "chat_messages"
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

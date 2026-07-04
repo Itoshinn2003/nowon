@@ -5,6 +5,7 @@ class Recruitment < ApplicationRecord
   belongs_to :user
   belongs_to :recruitment_category
   has_many :recruitment_applications, dependent: :destroy
+  has_one :chat_room, dependent: :destroy
 
   enum :recruitment_type, {
     one_to_one: 0,
@@ -64,6 +65,21 @@ class Recruitment < ApplicationRecord
 
   def max_accepted?
     accepted_application_count >= recruiting_people_max
+  end
+
+  def ensure_chat_room!
+    raise ActiveRecord::RecordInvalid, self unless matched?
+
+    transaction do
+      room = chat_room || create_chat_room!
+      participant_user_ids = [ user_id ] + recruitment_applications.accepted.pluck(:user_id)
+
+      participant_user_ids.uniq.each do |participant_user_id|
+        room.chat_participants.find_or_create_by!(user_id: participant_user_id)
+      end
+
+      room
+    end
   end
 
   private

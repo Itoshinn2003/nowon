@@ -1,14 +1,13 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, Text, View } from "react-native";
 import MapView, {
-  Marker,
   PROVIDER_GOOGLE,
   type LatLng,
 } from "react-native-maps";
 
-import { DraftRecruitmentPin } from "@/src/components/map/DraftRecruitmentPin";
+import { LocationPulseMarker } from "@/src/components/map/LocationPulseMarker";
 import { LocationSelectionCard } from "@/src/components/map/LocationSelectionCard";
 import {
   MapFilterSheet,
@@ -17,6 +16,7 @@ import {
   type MapFilterRecruitmentType,
 } from "@/src/components/map/MapFilterSheet";
 import { RecruitmentApplicationCard } from "@/src/components/map/RecruitmentApplicationCard";
+import { RecruitmentMapMarker } from "@/src/components/map/RecruitmentMapMarker";
 import { createRecruitmentApplication } from "@/src/api/recruitmentApplications";
 import { colors } from "@/src/constants/colors";
 import { minimalMapStyle } from "@/src/constants/map";
@@ -61,6 +61,7 @@ export default function MapScreen() {
     useState<Recruitment | null>(null);
   const [applyErrorMessage, setApplyErrorMessage] = useState("");
   const [applicationMessage, setApplicationMessage] = useState("");
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const {
     isSubmitting,
     startSubmitting,
@@ -128,6 +129,14 @@ export default function MapScreen() {
     }
   }, [hasActiveRecruitment]);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60_000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   const selectedRecruitmentApplication = selectedRecruitment
     ? applications.find(
         (application) => application.recruitment_id === selectedRecruitment.id
@@ -193,12 +202,11 @@ export default function MapScreen() {
           }
 
           return (
-            <Marker
+            <RecruitmentMapMarker
               key={`recruitment-${recruitment.id}`}
               coordinate={{ latitude, longitude }}
-              title={recruitment.purpose}
-              description={recruitment.vibe}
-              stopPropagation
+              recruitment={recruitment}
+              currentTime={currentTime}
               onPress={() => {
                 setSelectedRecruitment(recruitment);
                 setSelectedCoordinate(null);
@@ -209,15 +217,12 @@ export default function MapScreen() {
           );
         })}
 
-        {selectedCoordinate && !hasActiveRecruitment ? (
-          <Marker
-            key={`draft-${selectedCoordinate.latitude}-${selectedCoordinate.longitude}`}
-            coordinate={selectedCoordinate}
-            anchor={{ x: 0.5, y: 0.5 }}
-            tracksViewChanges
-          >
-            <DraftRecruitmentPin />
-          </Marker>
+        {selectedCoordinate ? (
+          <LocationPulseMarker
+            latitude={selectedCoordinate.latitude}
+            longitude={selectedCoordinate.longitude}
+            visible={!hasActiveRecruitment}
+          />
         ) : null}
       </MapView>
 
@@ -251,6 +256,7 @@ export default function MapScreen() {
           }
           isApplyDisabled={!canApplyToSelectedRecruitment}
           isApplying={isSubmitting}
+          isOwnRecruitment={selectedRecruitmentIsOwn}
           disabledReason={
             applyErrorMessage || selectedRecruitmentDisabledReason
           }
@@ -261,11 +267,17 @@ export default function MapScreen() {
             setApplicationMessage("");
             setApplyErrorMessage("");
           }}
+          onPressOwnerProfile={
+            selectedRecruitmentIsOwn
+              ? undefined
+              : () => router.push(`/profiles/${selectedRecruitment.user_id}`)
+          }
         />
       ) : null}
 
       <View
-        className="absolute bottom-6 left-4 right-4 rounded-lg border bg-white/95 px-4 py-3 shadow-sm"
+        pointerEvents="none"
+        className="absolute left-20 right-20 top-20 rounded-full border bg-white/90 px-3 py-2 shadow-sm"
         style={{ borderColor: colors.border }}
       >
         <Text className="text-center text-sm font-bold text-gray-900">

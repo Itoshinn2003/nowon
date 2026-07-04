@@ -1,22 +1,35 @@
-import { FlatList } from "react-native";
+import type { ReactElement } from "react";
+import { FlatList, type RefreshControlProps } from "react-native";
 
 import { ChatEmptyState } from "@/src/components/chat/ChatEmptyState";
 import { ChatListItem } from "@/src/components/chat/ChatListItem";
-import type { ChatPreview } from "@/src/types/chat";
+import type { ChatRoom } from "@/src/types/chat";
 
 type Props = {
-  chats: ChatPreview[];
-  onPressChat: (chatId: string) => void;
+  chats: ChatRoom[];
+  currentUserId: number | null;
+  onPressChat: (chatId: number) => void;
+  refreshControl?: ReactElement<RefreshControlProps>;
 };
 
-export function ChatList({ chats, onPressChat }: Props) {
+export function ChatList({
+  chats,
+  currentUserId,
+  onPressChat,
+  refreshControl,
+}: Props) {
   return (
     <FlatList
       data={chats}
-      keyExtractor={(item) => item.id}
-      contentContainerClassName="gap-3 px-4 pb-6"
+      keyExtractor={(item) => String(item.id)}
+      contentContainerClassName="pb-6"
+      refreshControl={refreshControl}
       renderItem={({ item }) => (
-        <ChatListItem chat={item} onPress={onPressChat} />
+        <ChatListItem
+          chat={item}
+          currentUserId={currentUserId}
+          onPress={onPressChat}
+        />
       )}
       ListEmptyComponent={<ChatEmptyState />}
     />
