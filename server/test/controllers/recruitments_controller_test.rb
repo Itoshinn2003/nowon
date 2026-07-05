@@ -2,6 +2,38 @@ require "test_helper"
 require "securerandom"
 
 class RecruitmentsControllerTest < ActionDispatch::IntegrationTest
+  test "index filters recruitments by map bounds" do
+    viewer = create_user("bounds-viewer-#{SecureRandom.hex(4)}@example.com")
+    inside_owner = create_user("inside-owner-#{SecureRandom.hex(4)}@example.com")
+    outside_owner = create_user("outside-owner-#{SecureRandom.hex(4)}@example.com")
+    inside_recruitment = create_recruitment(
+      inside_owner,
+      latitude: 35.681236,
+      longitude: 139.767125
+    )
+    outside_recruitment = create_recruitment(
+      outside_owner,
+      latitude: 35.75,
+      longitude: 139.82
+    )
+
+    get "/recruitments", params: {
+      north: 35.69,
+      south: 35.67,
+      east: 139.78,
+      west: 139.75
+    }, headers: viewer.create_new_auth_token
+
+    assert_response :success
+
+    recruitment_ids = response
+                      .parsed_body
+                      .fetch("recruitments")
+                      .map { |recruitment| recruitment.fetch("id") }
+    assert_includes recruitment_ids, inside_recruitment.id
+    assert_not_includes recruitment_ids, outside_recruitment.id
+  end
+
   test "show returns an active recruitment" do
     owner = create_user("owner-#{SecureRandom.hex(4)}@example.com")
     viewer = create_user("viewer-#{SecureRandom.hex(4)}@example.com")
@@ -38,7 +70,7 @@ class RecruitmentsControllerTest < ActionDispatch::IntegrationTest
     )
   end
 
-  def create_recruitment(user)
+  def create_recruitment(user, latitude: 35.681236, longitude: 139.767125)
     Recruitment.create!(
       user: user,
       recruitment_category: create_category,
@@ -48,8 +80,8 @@ class RecruitmentsControllerTest < ActionDispatch::IntegrationTest
       recruiting_people_min: 1,
       recruiting_people_max: 1,
       allowed_gender_policy: :anyone,
-      latitude: 35.681236,
-      longitude: 139.767125,
+      latitude: latitude,
+      longitude: longitude,
       safety_confirmed: true
     )
   end

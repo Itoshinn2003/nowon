@@ -4,6 +4,7 @@ class RecruitmentsController < ApplicationController
   def index
     recruitments = Recruitment
                    .active_now
+                   .then { |scope| filter_by_bounds(scope) }
                    .includes(:recruitment_category, user: { user_profile: { profile_photos: { image_attachment: :blob } } })
                    .order(created_at: :desc)
 
@@ -89,6 +90,38 @@ class RecruitmentsController < ApplicationController
   end
 
   private
+
+  def filter_by_bounds(scope)
+    return scope unless bounds_params?
+
+    scoped = scope.where(latitude: bounds_south..bounds_north)
+
+    if bounds_west <= bounds_east
+      scoped.where(longitude: bounds_west..bounds_east)
+    else
+      scoped.where("longitude >= ? OR longitude <= ?", bounds_west, bounds_east)
+    end
+  end
+
+  def bounds_params?
+    %i[north south east west].all? { |key| params[key].present? }
+  end
+
+  def bounds_north
+    @bounds_north ||= params[:north].to_d
+  end
+
+  def bounds_south
+    @bounds_south ||= params[:south].to_d
+  end
+
+  def bounds_east
+    @bounds_east ||= params[:east].to_d
+  end
+
+  def bounds_west
+    @bounds_west ||= params[:west].to_d
+  end
 
   def viewable_recruitment?(recruitment)
     return true if recruitment.user_id == current_user.id

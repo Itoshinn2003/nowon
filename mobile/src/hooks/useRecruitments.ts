@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   getRecruitment,
   getMyRecruitments,
   getRecruitments,
 } from "@/src/api/recruitments";
-import type { Recruitment } from "@/src/types/recruitment";
+import type { Recruitment, RecruitmentBounds } from "@/src/types/recruitment";
 import { errorMessageFromError } from "@/src/utils/profile";
 
 type UseRecruitmentsOptions = {
@@ -62,25 +62,36 @@ export function useRecruitment(recruitmentId: number | null) {
 }
 
 function useRecruitmentLoader(
-  loadRecruitmentsRequest: () => Promise<Recruitment[]>,
+  loadRecruitmentsRequest: (
+    bounds?: RecruitmentBounds
+  ) => Promise<Recruitment[]>,
   { loadOnMount = true }: UseRecruitmentsOptions
 ) {
   const [recruitments, setRecruitments] = useState<Recruitment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const requestIdRef = useRef(0);
 
-  const loadRecruitments = useCallback(async () => {
+  const loadRecruitments = useCallback(async (bounds?: RecruitmentBounds) => {
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const loadedRecruitments = await loadRecruitmentsRequest();
+      const loadedRecruitments = await loadRecruitmentsRequest(bounds);
+      if (requestId !== requestIdRef.current) return;
+
       setRecruitments(loadedRecruitments);
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
+
       setErrorMessage(
         errorMessageFromError(error, "募集を取得できませんでした")
       );
     } finally {
+      if (requestId !== requestIdRef.current) return;
+
       setIsLoading(false);
     }
   }, [loadRecruitmentsRequest]);
