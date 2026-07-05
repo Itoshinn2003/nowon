@@ -174,6 +174,11 @@ export default function PostsScreen() {
     }
   }
 
+  function handlePressRecruitmentDetail(recruitment: Recruitment) {
+    setSelectedRecruitment(null);
+    router.push(`/recruitments/${recruitment.id}`);
+  }
+
   async function requestCancelRecruitment(recruitment: Recruitment) {
     setCancelErrorMessage("");
     setCancelingRecruitmentId(recruitment.id);
@@ -390,9 +395,7 @@ export default function PostsScreen() {
         onAcceptApplication={requestAcceptApplication}
         onCancelAcceptApplication={requestCancelAcceptApplication}
         onMatchRecruitment={requestMatchRecruitment}
-        onPressRecruitmentDetail={(recruitment) =>
-          router.push(`/recruitments/${recruitment.id}`)
-        }
+        onPressRecruitmentDetail={handlePressRecruitmentDetail}
         onPressApplicantProfile={(application) =>
           router.push(`/profiles/${application.user_id}`)
         }

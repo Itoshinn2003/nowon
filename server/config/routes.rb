@@ -11,7 +11,7 @@ Rails.application.routes.draw do
   end
 
   resources :recruitment_categories, only: %i[ index ]
-  resources :recruitments, only: %i[ index create ] do
+  resources :recruitments, only: %i[ index show create ] do
     get :mine, on: :collection
     patch :cancel, on: :member
     patch :match, on: :member
