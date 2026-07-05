@@ -19,6 +19,7 @@ import {
 import { RecruitmentApplicationCard } from "@/src/components/map/RecruitmentApplicationCard";
 import { RecruitmentMapMarker } from "@/src/components/map/RecruitmentMapMarker";
 import { createRecruitmentApplication } from "@/src/api/recruitmentApplications";
+import { subscribeToRecruitments } from "@/src/api/recruitmentCable";
 import { colors } from "@/src/constants/colors";
 import { minimalMapStyle } from "@/src/constants/map";
 import { useRecruitmentCategories } from "@/src/hooks/useRecruitmentCategories";
@@ -29,7 +30,11 @@ import {
   useRecruitments,
 } from "@/src/hooks/useRecruitments";
 import { useProfile } from "@/src/hooks/useProfile";
-import type { Recruitment, RecruitmentBounds } from "@/src/types/recruitment";
+import type {
+  Recruitment,
+  RecruitmentBounds,
+  RecruitmentCablePayload,
+} from "@/src/types/recruitment";
 import { errorMessageFromError } from "@/src/utils/profile";
 
 const INITIAL_REGION: Region = {
@@ -76,6 +81,7 @@ export default function MapScreen() {
   const mapReloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
+  const recruitmentSubscriptionRef = useRef<{ close: () => void } | null>(null);
   const {
     isSubmitting,
     startSubmitting,
@@ -110,10 +116,48 @@ export default function MapScreen() {
     [loadMapData]
   );
 
+  const handleRecruitmentCableMessage = useCallback(
+    (payload: RecruitmentCablePayload) => {
+      if (payload.type !== "recruitment_created") return;
+      if (
+        !recruitmentLocationInBounds(
+          payload.recruitment,
+          visibleBoundsRef.current
+        )
+      ) {
+        return;
+      }
+
+      loadMapData();
+    },
+    [loadMapData]
+  );
+
   useFocusEffect(
     useCallback(() => {
+      let isFocused = true;
+
       loadMapData();
-    }, [loadMapData])
+
+      subscribeToRecruitments({
+        onMessage: handleRecruitmentCableMessage,
+      })
+        .then((subscription) => {
+          if (!isFocused) {
+            subscription.close();
+            return;
+          }
+
+          recruitmentSubscriptionRef.current = subscription;
+        })
+        .catch(() => undefined);
+
+      return () => {
+        isFocused = false;
+        recruitmentSubscriptionRef.current?.close();
+        recruitmentSubscriptionRef.current = null;
+      };
+    }, [handleRecruitmentCableMessage, loadMapData])
   );
 
   useEffect(() => {
@@ -399,6 +443,32 @@ function clampLatitude(latitude: number) {
 
 function normalizeLongitude(longitude: number) {
   return ((((longitude + 180) % 360) + 360) % 360) - 180;
+}
+
+function recruitmentLocationInBounds(
+  recruitment: RecruitmentCablePayload["recruitment"],
+  bounds: RecruitmentBounds
+) {
+  const latitude = Number(recruitment.latitude);
+  const longitude = Number(recruitment.longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return false;
+  }
+
+  return (
+    latitude >= bounds.south &&
+    latitude <= bounds.north &&
+    longitudeInBounds(normalizeLongitude(longitude), bounds)
+  );
+}
+
+function longitudeInBounds(longitude: number, bounds: RecruitmentBounds) {
+  if (bounds.west <= bounds.east) {
+    return longitude >= bounds.west && longitude <= bounds.east;
+  }
+
+  return longitude >= bounds.west || longitude <= bounds.east;
 }
 
 function canApplyByGender(
