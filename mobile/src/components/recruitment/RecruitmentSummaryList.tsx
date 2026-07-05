@@ -47,7 +47,7 @@ export function RecruitmentSummaryList({
 function EmptyState({ message }: { message: string }) {
   return (
     <View
-      className="items-center rounded-lg border bg-white px-4 py-10"
+      className="items-center rounded-3xl border bg-white px-4 py-10"
       style={{ borderColor: colors.border }}
     >
       <FontAwesome name="inbox" size={24} color="#9CA3AF" />

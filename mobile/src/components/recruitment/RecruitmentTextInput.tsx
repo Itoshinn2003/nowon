@@ -23,13 +23,13 @@ export function RecruitmentTextInput({
 }: Props) {
   return (
     <View className="gap-2">
-      <Text className="text-sm font-medium text-gray-700">{label}</Text>
+      <Text className="text-sm font-bold text-gray-900">{label}</Text>
       <TextInput
         className={[
-          "rounded-lg border px-4 py-3 text-base text-gray-900",
+          "rounded-2xl px-4 py-4 text-base text-gray-900",
           multiline ? "min-h-24" : "",
         ].join(" ")}
-        style={{ borderColor: colors.inputBorder }}
+        style={{ backgroundColor: colors.surface }}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}

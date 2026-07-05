@@ -18,7 +18,7 @@ export function RecruitmentListTabs({
 }) {
   return (
     <View
-      className="flex-row rounded-lg border bg-white p-1"
+      className="flex-row rounded-full border bg-white p-1"
       style={{ borderColor: colors.border }}
     >
       {tabs.map((tab) => {
@@ -27,7 +27,7 @@ export function RecruitmentListTabs({
         return (
           <Pressable
             key={tab.value}
-            className="h-10 flex-1 items-center justify-center rounded-md px-2"
+            className="h-11 flex-1 items-center justify-center rounded-full px-2"
             style={{
               backgroundColor: isSelected ? colors.stateSoft : "#FFFFFF",
             }}

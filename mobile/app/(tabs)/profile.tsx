@@ -35,14 +35,11 @@ export default function ProfileScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView className="flex-1" contentContainerClassName="p-4 pb-12">
         <View className="gap-6">
-          <View className="gap-2">
-            <Text className="text-2xl font-bold text-gray-950">
-              プロフィール
-            </Text>
-            {errorMessage ? (
+          {errorMessage ? (
+            <View className="gap-2">
               <Text className="text-sm text-red-500">{errorMessage}</Text>
-            ) : null}
-          </View>
+            </View>
+          ) : null}
 
           <ProfileView profile={profile} />
 

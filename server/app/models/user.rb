@@ -7,4 +7,7 @@ class User < ApplicationRecord
   has_one :user_profile, dependent: :destroy
   has_many :recruitments, dependent: :destroy
   has_many :recruitment_applications, dependent: :destroy
+  has_many :chat_participants, dependent: :destroy
+  has_many :chat_rooms, through: :chat_participants
+  has_many :chat_messages, dependent: :destroy
 end

@@ -29,7 +29,7 @@ class RecruitmentApplicationsController < ApplicationController
   def mine
     applications = current_user
                    .recruitment_applications
-                   .includes(recruitment: :recruitment_category)
+                   .includes(recruitment: [:recruitment_category, { user: { user_profile: { profile_photos: { image_attachment: :blob } } } }])
                    .order(created_at: :desc)
 
     render json: {
@@ -73,7 +73,11 @@ class RecruitmentApplicationsController < ApplicationController
     end
 
     application.update!(status: :accepted)
-    recruitment.update!(status: :matched, closed_at: Time.current) if recruitment.max_accepted?
+
+    if recruitment.max_accepted?
+      recruitment.update!(status: :matched, closed_at: Time.current)
+      recruitment.ensure_chat_room!
+    end
 
     render json: { application: serialized_application(application.reload) }
   end
@@ -140,6 +144,7 @@ class RecruitmentApplicationsController < ApplicationController
     {
       id: recruitment.id,
       user_id: recruitment.user_id,
+      owner_profile: serialized_owner_profile(recruitment.user.user_profile),
       recruitment_type: recruitment.recruitment_type,
       recruitment_category_id: recruitment.recruitment_category_id,
       recruitment_category: serialized_category(recruitment.recruitment_category),
@@ -170,6 +175,19 @@ class RecruitmentApplicationsController < ApplicationController
       display_order: category.display_order,
       color: category.color,
       icon_name: category.icon_name
+    }
+  end
+
+  def serialized_owner_profile(profile)
+    return nil unless profile
+
+    nickname = profile.nickname.to_s
+    photo = profile.profile_photos.approved.ordered.first
+
+    {
+      nickname: nickname,
+      initials: nickname.first || "?",
+      avatar_url: photo&.image&.attached? ? rails_blob_url(photo.image, host: request.base_url) : nil
     }
   end
 end

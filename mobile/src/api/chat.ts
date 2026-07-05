@@ -1,44 +1,131 @@
-import type { ChatPreview } from "@/src/types/chat";
+import axios, { AxiosResponse } from "axios";
 
-const mockChatPreviews: ChatPreview[] = [
-  {
-    id: "tokyo-lunch",
-    name: "佐藤 颯太",
-    relatedPost: "東京駅でランチ",
-    lastMessage: "12:30で大丈夫です！丸の内側で待ち合わせしましょう。",
-    time: "10:24",
-    unreadCount: 2,
-    initials: "佐",
-  },
-  {
-    id: "shibuya-cafe",
-    name: "Mika",
-    relatedPost: "渋谷でカフェ作業",
-    lastMessage: "席取れそうなので先に入ってます。",
-    time: "昨日",
-    unreadCount: 0,
-    initials: "M",
-  },
-  {
-    id: "ueno-drink",
-    name: "田中 智也",
-    relatedPost: "上野で軽く飲み",
-    lastMessage: "募集見ました。まだ参加できますか？",
-    time: "月",
-    unreadCount: 1,
-    initials: "田",
-  },
-  {
-    id: "ginza-dinner",
-    name: "Aoi",
-    relatedPost: "銀座で夜ごはん",
-    lastMessage: "お店候補ありがとうございます。どちらも良さそうです。",
-    time: "6/12",
-    unreadCount: 0,
-    initials: "A",
-  },
-];
+import { env } from "@/src/config/env";
+import {
+  getAuthHeaders,
+  saveAuthHeaders,
+} from "@/src/stores/authStorage";
+import type { AuthHeaders } from "@/src/types/auth";
+import type {
+  ChatMessageResponse,
+  ChatMessagesResponse,
+  ChatRoomResponse,
+  ChatRoomsResponse,
+} from "@/src/types/chat";
 
-export function getChatPreviews() {
-  return mockChatPreviews;
+export async function getChatRooms() {
+  const response = await axios.get<ChatRoomsResponse>(
+    `${env.apiBaseUrl}/chat_rooms`,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data;
+}
+
+export async function getChatRoom(chatRoomId: number) {
+  const response = await axios.get<ChatRoomResponse>(
+    `${env.apiBaseUrl}/chat_rooms/${chatRoomId}`,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data;
+}
+
+export async function getChatMessages(chatRoomId: number) {
+  const response = await axios.get<ChatMessagesResponse>(
+    `${env.apiBaseUrl}/chat_rooms/${chatRoomId}/messages`,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data;
+}
+
+export async function createChatMessage(chatRoomId: number, body: string) {
+  const response = await axios.post<ChatMessageResponse>(
+    `${env.apiBaseUrl}/chat_rooms/${chatRoomId}/messages`,
+    {
+      message: {
+        body: body.trim(),
+      },
+    },
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data.message;
+}
+
+export async function markChatRoomRead(
+  chatRoomId: number,
+  lastReadMessageId: number
+) {
+  const response = await axios.patch<ChatRoomResponse>(
+    `${env.apiBaseUrl}/chat_rooms/${chatRoomId}/read`,
+    {
+      last_read_message_id: lastReadMessageId,
+    },
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data;
+}
+
+async function requestAuthHeaders() {
+  const authHeaders = await getAuthHeaders();
+
+  if (!authHeaders?.accessToken || !authHeaders.client || !authHeaders.uid) {
+    throw new Error("ログイン情報が見つかりません");
+  }
+
+  return {
+    "access-token": authHeaders.accessToken,
+    client: authHeaders.client,
+    uid: authHeaders.uid,
+    expiry: authHeaders.expiry,
+    "token-type": authHeaders.tokenType ?? "Bearer",
+  };
+}
+
+async function persistResponseAuthHeaders(response: AxiosResponse) {
+  const authHeaders = responseAuthHeaders(response);
+
+  if (!authHeaders) return;
+
+  await saveAuthHeaders(authHeaders);
+}
+
+function responseAuthHeaders(response: AxiosResponse): AuthHeaders | null {
+  const accessToken = response.headers["access-token"];
+  const client = response.headers.client;
+  const uid = response.headers.uid;
+  const expiry = response.headers.expiry;
+
+  if (!accessToken || !client || !uid || !expiry) return null;
+
+  return {
+    accessToken,
+    client,
+    uid,
+    expiry,
+    tokenType: response.headers["token-type"],
+  };
 }

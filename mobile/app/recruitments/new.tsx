@@ -1,10 +1,9 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { createRecruitment } from "@/src/api/recruitments";
 import { RecruitmentCreateForm } from "@/src/components/recruitment/RecruitmentCreateForm";
-import { BackIconButton } from "@/src/components/ui/BackIconButton";
 import { colors } from "@/src/constants/colors";
 import { useRecruitmentCategories } from "@/src/hooks/useRecruitmentCategories";
 import { useSubmitState } from "@/src/hooks/useSubmitState";
@@ -76,20 +75,14 @@ export default function RecruitmentNewScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View
-        className="mx-4 mt-2 flex-row items-center gap-3 rounded-lg border bg-white px-3 py-3"
-        style={{ borderColor: colors.border }}
-      >
-        <BackIconButton onPress={() => router.back()} />
-
-        <View className="min-w-0 flex-1">
-          <Text className="text-base font-bold text-gray-900" numberOfLines={1}>
-            {isOneToOne ? "1人用募集" : "複数人用募集"}
-          </Text>
-          <Text className="text-xs text-gray-500" numberOfLines={1}>
-            選択した場所から募集を作成します
-          </Text>
-        </View>
+      <View className="mx-4 mt-2 h-12 flex-row items-center justify-between">
+        <Pressable className="w-12" onPress={() => router.back()}>
+          <Text className="text-base font-bold text-gray-950">閉じる</Text>
+        </Pressable>
+        <Text className="text-base font-extrabold text-gray-950">
+          {isOneToOne ? "1対1の募集" : "グループ募集"}
+        </Text>
+        <View className="w-12" />
       </View>
 
       <ScrollView

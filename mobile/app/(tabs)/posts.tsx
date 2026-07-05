@@ -1,4 +1,4 @@
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -319,12 +319,14 @@ export default function PostsScreen() {
       <ScrollView className="flex-1" contentContainerClassName="p-4 pb-12">
         <View className="gap-5">
           <View className="gap-1">
-            <Text className="text-2xl font-bold text-gray-950">募集</Text>
-            <Text className="text-sm text-gray-500">
+            <Text className="text-center text-2xl font-bold text-gray-950">
+              募集
+            </Text>
+            <Text className="text-center text-sm text-gray-500">
               募集の状況を確認できます
             </Text>
             {displayedErrorMessage ? (
-              <Text className="text-sm text-red-500">
+              <Text className="text-center text-sm text-red-500">
                 {displayedErrorMessage}
               </Text>
             ) : null}
@@ -379,9 +381,21 @@ export default function PostsScreen() {
         applicationsErrorMessage={selectedRecruitmentApplicationsErrorMessage}
         processingApplicationId={processingApplicationId}
         isMatching={matchingRecruitmentId === selectedRecruitment?.id}
+        canShowApplications={Boolean(
+          selectedRecruitment &&
+            myRecruitments.some(
+              (recruitment) => recruitment.id === selectedRecruitment.id
+            )
+        )}
         onAcceptApplication={requestAcceptApplication}
         onCancelAcceptApplication={requestCancelAcceptApplication}
         onMatchRecruitment={requestMatchRecruitment}
+        onPressRecruitmentDetail={(recruitment) =>
+          router.push(`/recruitments/${recruitment.id}`)
+        }
+        onPressApplicantProfile={(application) =>
+          router.push(`/profiles/${application.user_id}`)
+        }
         onClose={() => setSelectedRecruitment(null)}
       />
     </SafeAreaView>

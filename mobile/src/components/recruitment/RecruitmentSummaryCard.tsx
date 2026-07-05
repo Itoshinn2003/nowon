@@ -23,12 +23,11 @@ export function RecruitmentSummaryCard({
   isCancelDisabled?: boolean;
 }) {
   const category = recruitment.recruitment_category?.name ?? "未分類";
-  const statusLabel = "募集中";
-  const statusTone: RecruitmentSummaryStatusTone = "active";
+  const status = recruitmentSummaryStatus(recruitment);
 
   return (
     <View
-      className="gap-3 rounded-lg border bg-white p-4"
+      className="gap-3 rounded-3xl border bg-white p-4"
       style={{ borderColor: colors.border }}
     >
       <Pressable className="gap-3" onPress={() => onPress?.(recruitment)}>
@@ -38,8 +37,8 @@ export function RecruitmentSummaryCard({
               {category}
             </Text>
             <StatusBadge
-              label={statusLabel}
-              tone={statusTone}
+              label={status.label}
+              tone={status.tone}
             />
           </View>
           <Text className="text-base font-bold text-gray-950" numberOfLines={2}>
@@ -61,7 +60,7 @@ export function RecruitmentSummaryCard({
           textColor="#DC2626"
           loading={isCanceling}
           disabled={isCanceling || isCancelDisabled}
-          style={{ borderColor: "#FCA5A5" }}
+          style={{ borderColor: "#FCA5A5", borderRadius: 999 }}
           onPress={() => onCancelRecruitment(recruitment)}
         >
           キャンセル
@@ -69,6 +68,21 @@ export function RecruitmentSummaryCard({
       ) : null}
     </View>
   );
+}
+
+function recruitmentSummaryStatus(recruitment: Recruitment): {
+  label: string;
+  tone: RecruitmentSummaryStatusTone;
+} {
+  if (recruitment.status === "matched") {
+    return { label: "成立済み", tone: "matched" };
+  }
+
+  if (recruitment.status === "active") {
+    return { label: "募集中", tone: "active" };
+  }
+
+  return { label: "終了", tone: "pending" };
 }
 
 function StatusBadge({

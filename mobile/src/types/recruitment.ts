@@ -22,6 +22,11 @@ export type RecruitmentCategory = {
 export type Recruitment = {
   id: number;
   user_id: number;
+  owner_profile: {
+    nickname: string;
+    initials: string;
+    avatar_url: string | null;
+  } | null;
   recruitment_type: RecruitmentType;
   recruitment_category_id: number;
   recruitment_category: RecruitmentCategory | null;

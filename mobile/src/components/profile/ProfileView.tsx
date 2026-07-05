@@ -5,7 +5,6 @@ import { Button } from "react-native-paper";
 import { DetailRow } from "@/src/components/ui/DetailRow";
 import { colors } from "@/src/constants/colors";
 import type { ProfileGender, UserProfile } from "@/src/types/profile";
-const MUTED_BACKGROUND = "#F3F4F6";
 
 const GENDER_LABELS: Record<ProfileGender, string> = {
   male: "男性",
@@ -30,16 +29,16 @@ export function ProfileView({ profile }: Props) {
         <View className="flex-row items-center gap-4">
           {mainPhoto?.url ? (
             <Image
-            source={{ uri: mainPhoto.url }}
-            className="h-24 w-24 rounded-full border-4"
-            style={{ borderColor: "white" }}
-          />
-        ) : (
-          <View
-            className="h-24 w-24 items-center justify-center rounded-full border-4"
-            style={{
-                  backgroundColor: MUTED_BACKGROUND,
-                  borderColor: colors.surface,
+              source={{ uri: mainPhoto.url }}
+              className="h-24 w-24 rounded-full border-4"
+              style={{ borderColor: colors.surface }}
+            />
+          ) : (
+            <View
+              className="h-24 w-24 items-center justify-center rounded-full border-4"
+              style={{
+                backgroundColor: "#F3F4F6",
+                borderColor: colors.surface,
               }}
             >
               <Text
@@ -55,25 +54,6 @@ export function ProfileView({ profile }: Props) {
             <Text className="text-2xl font-bold text-gray-900">
               {profile?.nickname || "ニックネーム未設定"}
             </Text>
-            <View className="flex-row flex-wrap gap-2">
-              <View
-                className="rounded-full px-3 py-1"
-                style={{
-                  backgroundColor: profile
-                    ? colors.stateSoft
-                    : colors.warningSoft,
-                }}
-              >
-                <Text
-                  className="text-xs font-bold"
-                  style={{
-                    color: profile ? colors.state : colors.warningText,
-                  }}
-                >
-                  {profile ? "公開中" : "未設定"}
-                </Text>
-              </View>
-            </View>
           </View>
         </View>
       </View>
@@ -93,13 +73,17 @@ export function ProfileView({ profile }: Props) {
         <DetailRow label="一言" value={profile?.bio || "未設定"} />
       </View>
 
-      <View
-        className="gap-3 rounded-lg border bg-white p-4"
-        style={{ borderColor: colors.border }}
-      >
+      <View className="flex-row gap-3">
         <Button
-          mode="contained"
-          buttonColor={colors.textPrimary}
+          mode="outlined"
+          textColor={colors.textPrimary}
+          contentStyle={{ height: 44 }}
+          style={{
+            backgroundColor: colors.surface,
+            borderColor: colors.inputBorder,
+            flex: 1,
+            minHeight: 44,
+          }}
           onPress={() => router.push("/profile/edit")}
         >
           プロフィール編集
@@ -108,7 +92,13 @@ export function ProfileView({ profile }: Props) {
           mode="outlined"
           disabled={!profile}
           textColor={colors.textPrimary}
-          style={{ borderColor: colors.inputBorder, backgroundColor: colors.surface }}
+          contentStyle={{ height: 44 }}
+          style={{
+            backgroundColor: colors.surface,
+            borderColor: colors.inputBorder,
+            flex: 1,
+            minHeight: 44,
+          }}
           onPress={() => router.push("/profile/photos")}
         >
           画像編集
