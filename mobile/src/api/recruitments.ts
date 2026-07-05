@@ -8,6 +8,7 @@ import {
 import type { AuthHeaders } from "@/src/types/auth";
 import type {
   CreateRecruitmentParams,
+  RecruitmentBounds,
   RecruitmentCategory,
   RecruitmentCategoriesResponse,
   RecruitmentResponse,
@@ -33,11 +34,12 @@ export async function getRecruitmentCategories(): Promise<
   return data?.recruitment_categories ?? [];
 }
 
-export async function getRecruitments() {
+export async function getRecruitments(bounds?: RecruitmentBounds) {
   const response = await axios.get<RecruitmentsResponse>(
     `${env.apiBaseUrl}/recruitments`,
     {
       headers: await requestAuthHeaders(),
+      params: bounds,
     }
   );
 

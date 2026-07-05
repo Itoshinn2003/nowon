@@ -1,5 +1,11 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import {
+  DeviceEventEmitter,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { createRecruitment } from "@/src/api/recruitments";
@@ -61,6 +67,7 @@ export default function RecruitmentNewScreen() {
         safetyConfirmed: formData.safetyConfirmed,
       });
 
+      DeviceEventEmitter.emit("recruitmentCreated");
       router.back();
     } catch (error) {
       setValidationError(

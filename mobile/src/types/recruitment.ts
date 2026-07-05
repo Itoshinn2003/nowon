@@ -58,6 +58,13 @@ export type RecruitmentsResponse = {
   recruitments: Recruitment[];
 };
 
+export type RecruitmentBounds = {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+};
+
 export type RecruitmentApplication = {
   id: number;
   recruitment_id: number;

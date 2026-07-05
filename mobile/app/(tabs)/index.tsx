@@ -1,10 +1,11 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert, DeviceEventEmitter, Pressable, Text, View } from "react-native";
 import MapView, {
   PROVIDER_GOOGLE,
   type LatLng,
+  type Region,
 } from "react-native-maps";
 
 import { LocationPulseMarker } from "@/src/components/map/LocationPulseMarker";
@@ -28,8 +29,17 @@ import {
   useRecruitments,
 } from "@/src/hooks/useRecruitments";
 import { useProfile } from "@/src/hooks/useProfile";
-import type { Recruitment } from "@/src/types/recruitment";
+import type { Recruitment, RecruitmentBounds } from "@/src/types/recruitment";
 import { errorMessageFromError } from "@/src/utils/profile";
+
+const INITIAL_REGION: Region = {
+  latitude: 35.681236,
+  longitude: 139.767125,
+  latitudeDelta: 0.02,
+  longitudeDelta: 0.02,
+};
+const INITIAL_BOUNDS = boundsFromRegion(INITIAL_REGION);
+const MAP_RELOAD_DEBOUNCE_MS = 350;
 
 export default function MapScreen() {
   const { categories } = useRecruitmentCategories();
@@ -62,29 +72,70 @@ export default function MapScreen() {
   const [applyErrorMessage, setApplyErrorMessage] = useState("");
   const [applicationMessage, setApplicationMessage] = useState("");
   const [currentTime, setCurrentTime] = useState(() => Date.now());
+  const visibleBoundsRef = useRef<RecruitmentBounds>(INITIAL_BOUNDS);
+  const mapReloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   const {
     isSubmitting,
     startSubmitting,
     finishSubmitting,
   } = useSubmitState();
 
-  useFocusEffect(
-    useCallback(() => {
-      async function loadRecruitments() {
-        await reloadRecruitments();
-        await reloadMyRecruitments();
-        await reloadApplications();
-        await reloadProfile();
+  const loadMapData = useCallback(async (bounds = visibleBoundsRef.current) => {
+    await reloadRecruitments(bounds);
+    await reloadMyRecruitments();
+    await reloadApplications();
+    await reloadProfile();
+  }, [
+    reloadApplications,
+    reloadMyRecruitments,
+    reloadProfile,
+    reloadRecruitments,
+  ]);
+
+  const handleRegionChangeComplete = useCallback(
+    (region: Region) => {
+      const nextBounds = boundsFromRegion(region);
+      visibleBoundsRef.current = nextBounds;
+
+      if (mapReloadTimeoutRef.current) {
+        clearTimeout(mapReloadTimeoutRef.current);
       }
 
-      loadRecruitments();
-    }, [
-      reloadApplications,
-      reloadMyRecruitments,
-      reloadProfile,
-      reloadRecruitments,
-    ])
+      mapReloadTimeoutRef.current = setTimeout(() => {
+        loadMapData(nextBounds);
+      }, MAP_RELOAD_DEBOUNCE_MS);
+    },
+    [loadMapData]
   );
+
+  useFocusEffect(
+    useCallback(() => {
+      loadMapData();
+    }, [loadMapData])
+  );
+
+  useEffect(() => {
+    return () => {
+      if (mapReloadTimeoutRef.current) {
+        clearTimeout(mapReloadTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      "recruitmentCreated",
+      () => {
+        setSelectedCoordinate(null);
+        setSelectedRecruitment(null);
+        loadMapData();
+      }
+    );
+
+    return () => subscription.remove();
+  }, [loadMapData]);
 
   const hasActiveRecruitment = myRecruitments.some(isRecruitmentOpen);
   const filteredRecruitments = useMemo(
@@ -183,12 +234,8 @@ export default function MapScreen() {
           setSelectedRecruitment(null);
           setSelectedCoordinate(event.nativeEvent.coordinate);
         }}
-        initialRegion={{
-          latitude: 35.681236,
-          longitude: 139.767125,
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        }}
+        initialRegion={INITIAL_REGION}
+        onRegionChangeComplete={handleRegionChangeComplete}
         showsUserLocation
         showsCompass={false}
         showsMyLocationButton={true}
@@ -314,8 +361,7 @@ export default function MapScreen() {
       await createRecruitmentApplication(recruitment.id, {
         message: applicationMessage,
       });
-      await reloadRecruitments();
-      await reloadApplications();
+      await loadMapData();
       setSelectedRecruitment(null);
       setApplicationMessage("");
       Alert.alert("応募しました", "募集主の返答をお待ちください。");
@@ -327,6 +373,32 @@ export default function MapScreen() {
       finishSubmitting();
     }
   }
+}
+
+function boundsFromRegion(region: Region): RecruitmentBounds {
+  const latitudeDelta = Math.abs(region.latitudeDelta);
+  const longitudeDelta = Math.abs(region.longitudeDelta);
+
+  return {
+    north: clampLatitude(region.latitude + latitudeDelta / 2),
+    south: clampLatitude(region.latitude - latitudeDelta / 2),
+    east:
+      longitudeDelta >= 360
+        ? 180
+        : normalizeLongitude(region.longitude + longitudeDelta / 2),
+    west:
+      longitudeDelta >= 360
+        ? -180
+        : normalizeLongitude(region.longitude - longitudeDelta / 2),
+  };
+}
+
+function clampLatitude(latitude: number) {
+  return Math.max(-90, Math.min(90, latitude));
+}
+
+function normalizeLongitude(longitude: number) {
+  return ((((longitude + 180) % 360) + 360) % 360) - 180;
 }
 
 function canApplyByGender(
