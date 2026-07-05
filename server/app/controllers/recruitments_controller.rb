@@ -24,6 +24,23 @@ class RecruitmentsController < ApplicationController
     }
   end
 
+  def show
+    recruitment = Recruitment
+                  .includes(
+                    :recruitment_category,
+                    :recruitment_applications,
+                    user: { user_profile: { profile_photos: { image_attachment: :blob } } }
+                  )
+                  .find(params[:id])
+
+    unless viewable_recruitment?(recruitment)
+      head :not_found
+      return
+    end
+
+    render json: { recruitment: serialized_recruitment(recruitment) }
+  end
+
   def create
     recruitment = current_user.recruitments.build(recruitment_params)
 
@@ -72,6 +89,15 @@ class RecruitmentsController < ApplicationController
   end
 
   private
+
+  def viewable_recruitment?(recruitment)
+    return true if recruitment.user_id == current_user.id
+    return true if recruitment.active? && recruitment.expires_at.future?
+
+    recruitment
+      .recruitment_applications
+      .any? { |application| application.user_id == current_user.id }
+  end
 
   def recruitment_params
     params.fetch(:recruitment, params).permit(

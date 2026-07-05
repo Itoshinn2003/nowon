@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import {
+  getRecruitment,
   getMyRecruitments,
   getRecruitments,
 } from "@/src/api/recruitments";
@@ -17,6 +18,47 @@ export function useRecruitments(options: UseRecruitmentsOptions = {}) {
 
 export function useMyRecruitments(options: UseRecruitmentsOptions = {}) {
   return useRecruitmentLoader(getMyRecruitments, options);
+}
+
+export function useRecruitment(recruitmentId: number | null) {
+  const [recruitment, setRecruitment] = useState<Recruitment | null>(null);
+  const [isLoading, setIsLoading] = useState(Boolean(recruitmentId));
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loadRecruitment = useCallback(async () => {
+    if (!recruitmentId) {
+      setRecruitment(null);
+      setIsLoading(false);
+      setErrorMessage("募集が見つかりませんでした");
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const loadedRecruitment = await getRecruitment(recruitmentId);
+      setRecruitment(loadedRecruitment);
+    } catch (error) {
+      setRecruitment(null);
+      setErrorMessage(
+        errorMessageFromError(error, "募集を取得できませんでした")
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [recruitmentId]);
+
+  useEffect(() => {
+    loadRecruitment();
+  }, [loadRecruitment]);
+
+  return {
+    recruitment,
+    isLoading,
+    errorMessage,
+    reloadRecruitment: loadRecruitment,
+  };
 }
 
 function useRecruitmentLoader(

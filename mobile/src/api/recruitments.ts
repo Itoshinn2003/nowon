@@ -46,6 +46,19 @@ export async function getRecruitments() {
   return response.data.recruitments;
 }
 
+export async function getRecruitment(recruitmentId: number) {
+  const response = await axios.get<RecruitmentResponse>(
+    `${env.apiBaseUrl}/recruitments/${recruitmentId}`,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return response.data.recruitment;
+}
+
 export async function getMyRecruitments() {
   const response = await axios.get<RecruitmentsResponse>(
     `${env.apiBaseUrl}/recruitments/mine`,
