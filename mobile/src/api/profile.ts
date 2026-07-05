@@ -23,6 +23,19 @@ export async function getProfile() {
   return normalizeProfile(response.data.profile);
 }
 
+export async function getUserProfile(userId: number) {
+  const response = await axios.get<ProfileResponse>(
+    `${env.apiBaseUrl}/profiles/${userId}`,
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return normalizeProfile(response.data.profile);
+}
+
 export async function saveProfile(params: SaveProfileParams) {
   const response = await axios.patch<ProfileResponse>(
     `${env.apiBaseUrl}/profile`,
@@ -123,6 +136,7 @@ function normalizeProfile(profile: ProfileResponse["profile"]): UserProfile | nu
 
   return {
     id: profile.id,
+    userId: profile.user_id,
     nickname: profile.nickname,
     birthDate: profile.birth_date,
     age: profile.age,

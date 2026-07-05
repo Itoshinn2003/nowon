@@ -9,6 +9,7 @@ export type ProfilePhoto = {
 
 export type UserProfile = {
   id: number;
+  userId: number;
   nickname: string;
   birthDate: string;
   age: number;
@@ -27,6 +28,7 @@ export type ProfileFormState = {
 export type ProfileResponse = {
   profile: {
     id: number;
+    user_id: number;
     nickname: string;
     birth_date: string;
     age: number;

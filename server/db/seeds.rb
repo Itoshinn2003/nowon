@@ -27,3 +27,27 @@ recruitment_categories.each do |category_attributes|
     category.save!
   end
 end
+
+demo_applicant_photo_path = Rails.root.join("db/seed_assets/demo_applicant_mio.png")
+
+User.where("email LIKE ?", "dummy-applicant-%@example.com").find_each do |user|
+  profile = user.user_profile || user.build_user_profile
+  profile.assign_attributes(
+    nickname: "佐藤みお",
+    birth_date: Date.new(1999, 4, 12),
+    gender: "female",
+    bio: "ライブ後に感想を話したり、カフェでゆっくりするのが好きです。初対面でも気軽に話せます。"
+  )
+  profile.save!
+
+  next unless File.exist?(demo_applicant_photo_path)
+
+  photo = profile.profile_photos.find_or_initialize_by(position: 1)
+  photo.status = "approved"
+  photo.image.attach(
+    io: File.open(demo_applicant_photo_path),
+    filename: "demo_applicant_mio.png",
+    content_type: "image/png"
+  )
+  photo.save!
+end

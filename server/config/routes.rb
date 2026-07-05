@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   resource :profile, only: %i[ show update ], controller: "profiles" do
     resources :photos, only: %i[ create destroy ], controller: "profile_photos"
   end
+  resources :profiles, only: %i[ show ], controller: "profiles"
 
   resources :recruitment_categories, only: %i[ index ]
   resources :recruitments, only: %i[ index show create ] do
