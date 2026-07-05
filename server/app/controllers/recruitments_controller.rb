@@ -46,6 +46,7 @@ class RecruitmentsController < ApplicationController
     recruitment = current_user.recruitments.build(recruitment_params)
 
     if recruitment.save
+      RecruitmentsChannel.broadcast_created(recruitment)
       render json: { recruitment: serialized_recruitment(recruitment) }, status: :created
     else
       render json: { errors: recruitment.errors.to_hash }, status: :unprocessable_entity

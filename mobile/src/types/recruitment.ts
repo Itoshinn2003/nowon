@@ -65,6 +65,15 @@ export type RecruitmentBounds = {
   west: number;
 };
 
+export type RecruitmentCablePayload = {
+  type: "recruitment_created";
+  recruitment: {
+    id: number;
+    latitude: string;
+    longitude: string;
+  };
+};
+
 export type RecruitmentApplication = {
   id: number;
   recruitment_id: number;

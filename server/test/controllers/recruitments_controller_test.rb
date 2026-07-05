@@ -2,6 +2,8 @@ require "test_helper"
 require "securerandom"
 
 class RecruitmentsControllerTest < ActionDispatch::IntegrationTest
+  include ActionCable::TestHelper
+
   test "index filters recruitments by map bounds" do
     viewer = create_user("bounds-viewer-#{SecureRandom.hex(4)}@example.com")
     inside_owner = create_user("inside-owner-#{SecureRandom.hex(4)}@example.com")
@@ -32,6 +34,44 @@ class RecruitmentsControllerTest < ActionDispatch::IntegrationTest
                       .map { |recruitment| recruitment.fetch("id") }
     assert_includes recruitment_ids, inside_recruitment.id
     assert_not_includes recruitment_ids, outside_recruitment.id
+  end
+
+  test "create broadcasts created recruitment to map subscribers" do
+    owner = create_user("broadcast-owner-#{SecureRandom.hex(4)}@example.com")
+    category = create_category
+
+    broadcasting = RecruitmentsChannel.broadcasting_for(
+      RecruitmentsChannel::MAP_STREAM
+    )
+    broadcasts = capture_broadcasts(broadcasting) do
+      post "/recruitments", params: {
+        recruitment: {
+          recruitment_type: "one_to_one",
+          recruitment_category_id: category.id,
+          purpose: "ランチ",
+          vibe: "気軽に",
+          recruiting_people_min: 1,
+          recruiting_people_max: 1,
+          allowed_gender_policy: "anyone",
+          latitude: 35.681236,
+          longitude: 139.767125,
+          safety_confirmed: true
+        }
+      }, headers: owner.create_new_auth_token
+    end
+
+    assert_response :created
+    assert_equal 1, broadcasts.size
+
+    message = broadcasts.first
+    recruitment = message.fetch("recruitment")
+    assert_equal "recruitment_created", message.fetch("type")
+    assert_equal(
+      response.parsed_body.dig("recruitment", "id"),
+      recruitment.fetch("id")
+    )
+    assert_equal "35.681236", recruitment.fetch("latitude")
+    assert_equal "139.767125", recruitment.fetch("longitude")
   end
 
   test "show returns an active recruitment" do
