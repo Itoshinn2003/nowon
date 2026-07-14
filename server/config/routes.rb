@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   mount ActionCable.server => "/cable"
 
+  post "auth/google", to: "auth/google_authentications#create"
+
   mount_devise_token_auth_for "User", at: "auth", controllers: {
     confirmations: "auth/confirmations",
     registrations: "auth/registrations"

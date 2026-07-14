@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 import { env } from "@/src/config/env";
 import type {
@@ -28,16 +28,32 @@ export async function signIn(formData: SignInFormState) {
     }
   );
 
-  const authHeaders: AuthHeaders = {
+  return {
+    data: response.data,
+    authHeaders: responseAuthHeaders(response),
+  };
+}
+
+export async function signInWithGoogle(idToken: string) {
+  const response = await axios.post<SignInResponse>(
+    `${env.apiBaseUrl}/auth/google`,
+    {
+      id_token: idToken,
+    }
+  );
+
+  return {
+    data: response.data,
+    authHeaders: responseAuthHeaders(response),
+  };
+}
+
+function responseAuthHeaders(response: AxiosResponse): AuthHeaders {
+  return {
     accessToken: response.headers["access-token"],
     client: response.headers.client,
     uid: response.headers.uid,
     expiry: response.headers.expiry,
     tokenType: response.headers["token-type"],
-  };
-
-  return {
-    data: response.data,
-    authHeaders,
   };
 }
