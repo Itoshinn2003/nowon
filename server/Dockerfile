@@ -6,11 +6,11 @@ WORKDIR /server
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
       build-essential \
-      default-libmysqlclient-dev \
-      default-mysql-client \
       git \
+      libpq-dev \
       libvips \
       libyaml-dev \
+      postgresql-client \
       pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 

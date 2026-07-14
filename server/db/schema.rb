@@ -11,7 +11,10 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
-  create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
+  create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -21,7 +24,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
-  create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "active_storage_blobs", force: :cascade do |t|
     t.bigint "byte_size", null: false
     t.string "checksum"
     t.string "content_type"
@@ -33,13 +36,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "active_storage_variant_records", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "chat_messages", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "chat_messages", force: :cascade do |t|
     t.text "body", null: false
     t.bigint "chat_room_id", null: false
     t.datetime "created_at", null: false
@@ -50,7 +53,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
     t.index ["user_id"], name: "index_chat_messages_on_user_id"
   end
 
-  create_table "chat_participants", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "chat_participants", force: :cascade do |t|
     t.bigint "chat_room_id", null: false
     t.datetime "created_at", null: false
     t.bigint "last_read_message_id"
@@ -62,14 +65,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
     t.index ["user_id"], name: "index_chat_participants_on_user_id"
   end
 
-  create_table "chat_rooms", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "chat_rooms", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "recruitment_id", null: false
     t.datetime "updated_at", null: false
     t.index ["recruitment_id"], name: "index_chat_rooms_on_recruitment_id", unique: true
   end
 
-  create_table "profile_photos", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "profile_photos", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "position", null: false
     t.string "rejection_reason"
@@ -79,11 +82,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
     t.index ["user_profile_id", "position"], name: "index_profile_photos_on_user_profile_id_and_position", unique: true
     t.index ["user_profile_id", "status"], name: "index_profile_photos_on_user_profile_id_and_status"
     t.index ["user_profile_id"], name: "index_profile_photos_on_user_profile_id"
-    t.check_constraint "`position` > 0", name: "chk_profile_photos_position"
-    t.check_constraint "`status` in (_utf8mb4'pending',_utf8mb4'approved',_utf8mb4'rejected')", name: "chk_profile_photos_status"
+    t.check_constraint "\"position\" > 0", name: "chk_profile_photos_position"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'approved'::character varying::text, 'rejected'::character varying::text])", name: "chk_profile_photos_status"
   end
 
-  create_table "recruitment_applications", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "recruitment_applications", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "message"
     t.bigint "recruitment_id", null: false
@@ -95,10 +98,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
     t.index ["recruitment_id"], name: "index_recruitment_applications_on_recruitment_id"
     t.index ["user_id", "status"], name: "index_recruitment_applications_on_user_id_and_status"
     t.index ["user_id"], name: "index_recruitment_applications_on_user_id"
-    t.check_constraint "`status` in (0,1,2)", name: "chk_recruitment_applications_status"
+    t.check_constraint "status = ANY (ARRAY[0, 1, 2])", name: "chk_recruitment_applications_status"
   end
 
-  create_table "recruitment_categories", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "recruitment_categories", force: :cascade do |t|
     t.string "color"
     t.datetime "created_at", null: false
     t.integer "display_order", default: 0, null: false
@@ -110,7 +113,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
     t.index ["key"], name: "index_recruitment_categories_on_key", unique: true
   end
 
-  create_table "recruitments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "recruitments", force: :cascade do |t|
     t.integer "allowed_gender_policy", null: false
     t.integer "application_limit", default: 10, null: false
     t.datetime "closed_at"
@@ -134,16 +137,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
     t.index ["status", "expires_at"], name: "index_recruitments_on_status_and_expires_at"
     t.index ["user_id", "status"], name: "index_recruitments_on_user_id_and_status"
     t.index ["user_id"], name: "index_recruitments_on_user_id"
-    t.check_constraint "`allowed_gender_policy` in (0,1,2)", name: "chk_recruitments_allowed_gender_policy"
-    t.check_constraint "`application_limit` <= 10", name: "chk_recruitments_application_limit_max"
-    t.check_constraint "`application_limit` >= `recruiting_people_max`", name: "chk_recruitments_application_limit_gte_people_max"
-    t.check_constraint "`recruiting_people_max` <= 4", name: "chk_recruitments_people_max"
-    t.check_constraint "`recruiting_people_min` <= `recruiting_people_max`", name: "chk_recruitments_people_min_lte_max"
-    t.check_constraint "`recruitment_type` in (0,1)", name: "chk_recruitments_recruitment_type"
-    t.check_constraint "`status` in (0,1,2,3)", name: "chk_recruitments_status"
+    t.check_constraint "allowed_gender_policy = ANY (ARRAY[0, 1, 2])", name: "chk_recruitments_allowed_gender_policy"
+    t.check_constraint "application_limit <= 10", name: "chk_recruitments_application_limit_max"
+    t.check_constraint "application_limit >= recruiting_people_max", name: "chk_recruitments_application_limit_gte_people_max"
+    t.check_constraint "recruiting_people_max <= 4", name: "chk_recruitments_people_max"
+    t.check_constraint "recruiting_people_min <= recruiting_people_max", name: "chk_recruitments_people_min_lte_max"
+    t.check_constraint "recruitment_type = ANY (ARRAY[0, 1])", name: "chk_recruitments_recruitment_type"
+    t.check_constraint "status = ANY (ARRAY[0, 1, 2, 3])", name: "chk_recruitments_status"
   end
 
-  create_table "user_profiles", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "user_profiles", force: :cascade do |t|
     t.string "bio", limit: 160
     t.date "birth_date", null: false
     t.datetime "created_at", null: false
@@ -154,10 +157,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_000000) do
     t.index ["birth_date"], name: "index_user_profiles_on_birth_date"
     t.index ["gender"], name: "index_user_profiles_on_gender"
     t.index ["user_id"], name: "index_user_profiles_on_user_id", unique: true
-    t.check_constraint "`gender` in (_utf8mb4'male',_utf8mb4'female',_utf8mb4'other',_utf8mb4'no_answer')", name: "chk_user_profiles_gender"
+    t.check_constraint "gender::text = ANY (ARRAY['male'::character varying::text, 'female'::character varying::text, 'other'::character varying::text, 'no_answer'::character varying::text])", name: "chk_user_profiles_gender"
   end
 
-  create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "users", force: :cascade do |t|
     t.boolean "allow_password_change", default: false
     t.datetime "confirmation_sent_at"
     t.string "confirmation_token"
