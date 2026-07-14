@@ -7,6 +7,7 @@ import * as WebBrowser from "expo-web-browser";
 
 import { signInWithGoogle } from "@/src/api/auth";
 import { env } from "@/src/config/env";
+import { colors } from "@/src/constants/colors";
 import { useAuthStore } from "@/src/stores/authStore";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -85,6 +86,9 @@ export function GoogleContinueButton() {
       mode="outlined"
       loading={isSubmitting}
       disabled={isSubmitting}
+      textColor={colors.state}
+      style={{ borderColor: colors.state }}
+      theme={{ colors: { primary: colors.state } }}
       onPress={handlePress}
     >
       Googleで続ける
