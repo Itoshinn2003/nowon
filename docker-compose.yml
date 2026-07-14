@@ -1,16 +1,16 @@
 services:
   db:
-    image: mysql:8.4
+    image: postgres:17
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: server_development
-      MYSQL_ROOT_HOST: "%"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: server_development
     ports:
-      - "3307:3306"
+      - "5433:5432"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ppassword"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d server_development"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -34,13 +34,13 @@ services:
     environment:
       RAILS_ENV: development
       DB_HOST: db
-      DB_USERNAME: root
+      DB_USERNAME: postgres
       DB_PASSWORD: password
     stdin_open: true
     tty: true
 
 volumes:
-  mysql-data:
+  postgres-data:
     driver: local
   bundle-data:
     driver: local
