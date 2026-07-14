@@ -23,8 +23,6 @@ type AuthContextValue = {
   clearSession: () => Promise<void>;
 };
 
-const STARTUP_LOADING_DURATION_MS = 1000;
-
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -34,10 +32,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     let isMounted = true;
 
     async function restoreSession() {
-      const [authHeaders] = await Promise.all([
-        getAuthHeaders(),
-        wait(STARTUP_LOADING_DURATION_MS),
-      ]);
+      const authHeaders = await getAuthHeaders();
 
       if (!isMounted) return;
 
@@ -68,12 +63,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-function wait(durationMs: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, durationMs);
-  });
 }
 
 export function useAuthStore() {
