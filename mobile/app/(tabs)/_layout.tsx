@@ -4,10 +4,12 @@ import React from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { colors } from "@/src/constants/colors";
 import { useProfile } from "@/src/hooks/useProfile";
 
 const TAB_BAR_BASE_HEIGHT = 52;
-const TAB_BAR_BOTTOM_OFFSET = 10;
+const TAB_BAR_BOTTOM_INSET_REDUCTION = 20;
+const TAB_BAR_MIN_BOTTOM_PADDING = 6;
 const TAB_BAR_TOP_PADDING = 4;
 
 function TabBarIcon(props: {
@@ -76,13 +78,16 @@ function TabIconFrame({ children }: { children: React.ReactNode }) {
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
-  const bottomPadding = insets.bottom + TAB_BAR_BOTTOM_OFFSET;
+  const bottomPadding = Math.max(
+    insets.bottom - TAB_BAR_BOTTOM_INSET_REDUCTION,
+    TAB_BAR_MIN_BOTTOM_PADDING
+  );
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#111827",
+        tabBarActiveTintColor: colors.state,
         tabBarInactiveTintColor: "#111827",
         tabBarShowLabel: false,
         tabBarStyle: {
@@ -117,9 +122,7 @@ export default function TabLayout() {
         name="posts"
         options={{
           title: "募集",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="edit-3" color={color} />
-          ),
+          tabBarIcon: ({ color }) => <TabBarIcon name="edit-3" color={color} />,
         }}
       />
       <Tabs.Screen
