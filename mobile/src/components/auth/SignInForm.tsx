@@ -127,7 +127,7 @@ export function SignInForm({
       </View>
 
       <Button mode="contained" disabled={!canSubmit} onPress={handleSubmit}>
-        ログインする
+        ログイン
       </Button>
     </View>
   );
