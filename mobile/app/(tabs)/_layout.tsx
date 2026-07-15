@@ -2,8 +2,13 @@ import Feather from "@expo/vector-icons/Feather";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useProfile } from "@/src/hooks/useProfile";
+
+const TAB_BAR_BASE_HEIGHT = 52;
+const TAB_BAR_BOTTOM_OFFSET = 10;
+const TAB_BAR_TOP_PADDING = 4;
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof Feather>["name"];
@@ -70,6 +75,9 @@ function TabIconFrame({ children }: { children: React.ReactNode }) {
 }
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const bottomPadding = insets.bottom + TAB_BAR_BOTTOM_OFFSET;
+
   return (
     <Tabs
       screenOptions={{
@@ -82,9 +90,9 @@ export default function TabLayout() {
           borderTopColor: "#DBDBDB",
           borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
-          height: 52,
-          paddingBottom: 0,
-          paddingTop: 0,
+          height: TAB_BAR_BASE_HEIGHT + bottomPadding,
+          paddingBottom: bottomPadding,
+          paddingTop: TAB_BAR_TOP_PADDING,
           shadowOpacity: 0,
         },
         tabBarItemStyle: {
