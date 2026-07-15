@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
 import { GoogleContinueButton } from "@/src/components/auth/GoogleContinueButton";
@@ -10,7 +10,12 @@ export default function WelcomeScreen() {
   return (
     <View className="flex-1 justify-center bg-white px-6">
       <View className="w-full gap-8">
-        <View className="gap-3">
+        <View className="items-center gap-4">
+          <Image
+            source={require("@/assets/images/The logo of NowOn.png")}
+            resizeMode="contain"
+            style={{ height: 88, width: 240 }}
+          />
           <Text className="text-center text-3xl font-bold text-gray-900">
             ようこそ
           </Text>
