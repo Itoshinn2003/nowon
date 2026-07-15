@@ -2,25 +2,27 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+local: &local
+  <<: *default
   username: <%= ENV.fetch("DB_USERNAME") { "postgres" } %>
   password: <%= ENV.fetch("DB_PASSWORD") { "password" } %>
   host: <%= ENV.fetch("DB_HOST") { "localhost" } %>
   port: <%= ENV.fetch("DB_PORT") { 5433 } %>
 
 development:
-  <<: *default
+  <<: *local
   database: server_development
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  <<: *default
+  <<: *local
   database: server_test
 
 production:
   primary: &primary_production
-    <<: *default
     url: <%= ENV["DATABASE_URL"] %>
   cache:
     <<: *primary_production
