@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { getChatRooms } from "@/src/api/chat";
 import { ChatList } from "@/src/components/chat/ChatList";
+import { LoadingScreen } from "@/src/components/ui/LoadingScreen";
 import { colors } from "@/src/constants/colors";
 import type { ChatRoom } from "@/src/types/chat";
 import { errorMessageFromError } from "@/src/utils/profile";
@@ -50,6 +51,10 @@ export default function ChatScreen() {
     } as never);
   }
 
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
       <View className="px-5 pb-2 pt-2">
@@ -58,9 +63,6 @@ export default function ChatScreen() {
         </Text>
         {errorMessage ? (
           <Text className="mt-2 text-sm text-red-500">{errorMessage}</Text>
-        ) : null}
-        {isLoading ? (
-          <Text className="mt-2 text-sm text-gray-500">読み込み中です</Text>
         ) : null}
       </View>
       <ChatList

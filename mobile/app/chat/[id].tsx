@@ -28,6 +28,7 @@ import { subscribeToChatRoom } from "@/src/api/chatCable";
 import { ChatMessageBubble } from "@/src/components/chat/ChatMessageBubble";
 import { TypingAvatarIndicator } from "@/src/components/chat/TypingAvatarIndicator";
 import { BackIconButton } from "@/src/components/ui/BackIconButton";
+import { LoadingScreen } from "@/src/components/ui/LoadingScreen";
 import { colors } from "@/src/constants/colors";
 import { useSubmitState } from "@/src/hooks/useSubmitState";
 import type {
@@ -347,6 +348,10 @@ export default function ChatDetailScreen() {
     }
   }
 
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <KeyboardAvoidingView
@@ -381,35 +386,29 @@ export default function ChatDetailScreen() {
           <Text className="mx-4 mt-3 text-sm text-red-500">{errorMessage}</Text>
         ) : null}
 
-        {isLoading ? (
-          <View className="flex-1 items-center justify-center px-6">
-            <Text className="text-sm text-gray-500">読み込み中です</Text>
-          </View>
-        ) : (
-          <FlatList
-            ref={listRef}
-            data={messages}
-            keyExtractor={(item) => String(item.id)}
-            contentContainerClassName="gap-4 px-0 py-5"
-            renderItem={({ item }) => (
-              <ChatMessageBubble
-                message={item}
-                participant={participantsByUserId.get(item.user_id)}
-                isMine={item.user_id === currentUserId}
-                onPressParticipant={(participant) =>
-                  router.push(`/profiles/${participant.user_id}`)
-                }
-              />
-            )}
-            ListEmptyComponent={
-              <View className="items-center justify-center px-6 py-20">
-                <Text className="text-sm text-gray-500">
-                  最初のメッセージを送ってみましょう
-                </Text>
-              </View>
-            }
-          />
-        )}
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerClassName="gap-4 px-0 py-5"
+          renderItem={({ item }) => (
+            <ChatMessageBubble
+              message={item}
+              participant={participantsByUserId.get(item.user_id)}
+              isMine={item.user_id === currentUserId}
+              onPressParticipant={(participant) =>
+                router.push(`/profiles/${participant.user_id}`)
+              }
+            />
+          )}
+          ListEmptyComponent={
+            <View className="items-center justify-center px-6 py-20">
+              <Text className="text-sm text-gray-500">
+                最初のメッセージを送ってみましょう
+              </Text>
+            </View>
+          }
+        />
 
         <TypingAvatarIndicator typingUsers={typingUserList} />
 
