@@ -25,7 +25,7 @@ export default function WelcomeScreen() {
             buttonColor={colors.state}
             textColor="#FFFFFF"
             theme={{ colors: { primary: colors.state } }}
-            onPress={() => router.replace("/signup")}
+            onPress={() => router.push("/signup")}
           >
             メールで続ける
           </Button>
@@ -35,7 +35,7 @@ export default function WelcomeScreen() {
         <AuthSwitchLink
           prompt="すでにアカウントをお持ちの方"
           actionText="ログイン"
-          onPress={() => router.replace("/signin")}
+          onPress={() => router.push("/signin")}
         />
       </View>
     </View>

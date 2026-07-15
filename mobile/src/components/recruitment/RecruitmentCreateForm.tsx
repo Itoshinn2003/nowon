@@ -1,7 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
-import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
+import MapView from "react-native-maps";
 import { Button } from "react-native-paper";
 
 import { LocationPulseMarker } from "@/src/components/map/LocationPulseMarker";
@@ -304,9 +304,7 @@ function SelectedLocationPreview({
         {hasCoordinate ? (
           <View className="overflow-hidden rounded-[26px]">
             <MapView
-              provider={PROVIDER_GOOGLE}
               style={styles.mapPreview}
-              customMapStyle={locationPreviewMapStyle}
               initialRegion={{
                 latitude,
                 longitude,
@@ -352,47 +350,3 @@ const styles = StyleSheet.create({
     backgroundColor: colors.stateMuted,
   },
 });
-
-const locationPreviewMapStyle = [
-  {
-    elementType: "geometry",
-    stylers: [{ color: "#F3F6F6" }],
-  },
-  {
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#667085" }],
-  },
-  {
-    elementType: "labels.text.stroke",
-    stylers: [{ color: "#FFFFFF" }],
-  },
-  {
-    featureType: "poi",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "road",
-    elementType: "geometry",
-    stylers: [{ color: "#FFFFFF" }],
-  },
-  {
-    featureType: "road",
-    elementType: "labels.icon",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "road.local",
-    elementType: "labels",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "transit",
-    elementType: "geometry",
-    stylers: [{ color: "#DDE7E5" }],
-  },
-  {
-    featureType: "water",
-    elementType: "geometry",
-    stylers: [{ color: "#BFEFEB" }],
-  },
-];

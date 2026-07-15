@@ -1,7 +1,7 @@
 import Feather from "@expo/vector-icons/Feather";
 import { Tabs } from "expo-router";
 import React from "react";
-import { Image, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 
 import { useProfile } from "@/src/hooks/useProfile";
 
@@ -11,12 +11,18 @@ function TabBarIcon(props: {
 }) {
   return (
     <TabIconFrame>
-      <Feather size={24} {...props} />
+      <Feather size={25} {...props} />
     </TabIconFrame>
   );
 }
 
-function ProfileTabIcon({ color }: { color: string }) {
+function ProfileTabIcon({
+  color,
+  focused,
+}: {
+  color: string;
+  focused: boolean;
+}) {
   const { profile } = useProfile();
   const photoUrl = profile?.photos[0]?.url;
 
@@ -28,16 +34,21 @@ function ProfileTabIcon({ color }: { color: string }) {
     <TabIconFrame>
       <View
         style={{
-          borderRadius: 13,
-          height: 26,
+          borderColor: focused ? color : "transparent",
+          borderRadius: 14,
+          borderWidth: 1.5,
+          height: 28,
           overflow: "hidden",
-          width: 26,
+          padding: 1,
+          width: 28,
         }}
       >
-        <Image
-          source={{ uri: photoUrl }}
-          style={{ height: "100%", width: "100%" }}
-        />
+        <View style={{ borderRadius: 12, flex: 1, overflow: "hidden" }}>
+          <Image
+            source={{ uri: photoUrl }}
+            style={{ height: "100%", width: "100%" }}
+          />
+        </View>
       </View>
     </TabIconFrame>
   );
@@ -48,9 +59,9 @@ function TabIconFrame({ children }: { children: React.ReactNode }) {
     <View
       style={{
         alignItems: "center",
-        height: 42,
+        height: 44,
         justifyContent: "center",
-        width: 48,
+        width: 56,
       }}
     >
       {children}
@@ -63,17 +74,25 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#00C2A8",
+        tabBarActiveTintColor: "#111827",
+        tabBarInactiveTintColor: "#111827",
         tabBarShowLabel: false,
         tabBarStyle: {
-          height: 64,
-          paddingHorizontal: 34,
-          paddingTop: 8,
+          backgroundColor: "#FFFFFF",
+          borderTopColor: "#DBDBDB",
+          borderTopWidth: StyleSheet.hairlineWidth,
+          elevation: 0,
+          height: 52,
+          paddingBottom: 0,
+          paddingTop: 0,
+          shadowOpacity: 0,
         },
         tabBarItemStyle: {
           alignItems: "center",
           justifyContent: "center",
-          paddingTop: 2,
+        },
+        tabBarIconStyle: {
+          marginTop: 0,
         },
       }}
     >
@@ -108,7 +127,9 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "プロフィール",
-          tabBarIcon: ({ color }) => <ProfileTabIcon color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <ProfileTabIcon color={color} focused={focused} />
+          ),
         }}
       />
     </Tabs>

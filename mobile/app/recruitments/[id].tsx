@@ -7,13 +7,12 @@ import {
   Text,
   View,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import { Button } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackIconButton } from "@/src/components/ui/BackIconButton";
 import { colors } from "@/src/constants/colors";
-import { minimalMapStyle } from "@/src/constants/map";
 import { useRecruitment } from "@/src/hooks/useRecruitments";
 import type {
   AllowedGenderPolicy,
@@ -212,8 +211,6 @@ function RecruitmentDetail({ recruitment }: { recruitment: Recruitment }) {
         {hasCoordinate ? (
           <View className="h-48 overflow-hidden rounded-2xl">
             <MapView
-              provider={PROVIDER_GOOGLE}
-              customMapStyle={minimalMapStyle}
               scrollEnabled={false}
               zoomEnabled={false}
               rotateEnabled={false}

@@ -1,18 +1,22 @@
 import axios from "axios";
 import { router } from "expo-router";
-import { View } from "react-native";
+import { useState } from "react";
+import { Text, View } from "react-native";
 
 import { signUp } from "@/src/api/auth";
 import { GoogleContinueButton } from "@/src/components/auth/GoogleContinueButton";
 import { SignUpForm } from "@/src/components/auth/SignUpForm";
 import { AuthSwitchLink } from "@/src/components/ui/AuthSwitchLink";
 import { DividerWithText } from "@/src/components/ui/DividerWithText";
+import { colors } from "@/src/constants/colors";
 import { useSubmitState } from "@/src/hooks/useSubmitState";
 import type { AuthErrorResponse, SignUpFormState } from "@/src/types/auth";
 
 export default function SignUpScreen() {
+  const [successMessage, setSuccessMessage] = useState("");
   const {
     isSubmitting,
+    successCount,
     validationError,
     startSubmitting,
     finishSubmitting,
@@ -21,13 +25,19 @@ export default function SignUpScreen() {
 
   async function handleSubmit(formData: SignUpFormState) {
     startSubmitting();
+    setSuccessMessage("");
+    let succeeded = false;
 
     try {
       await signUp(formData);
+      succeeded = true;
+      setSuccessMessage(
+        "確認メールを送信しました。メール内のリンクから登録を完了してください。"
+      );
     } catch (error) {
       setValidationError(getSignUpErrorMessages(error));
     } finally {
-      finishSubmitting();
+      finishSubmitting({ succeeded });
     }
   }
 
@@ -36,9 +46,24 @@ export default function SignUpScreen() {
       <View className="w-full gap-8">
         <SignUpForm
           isSubmitting={isSubmitting}
+          resetSignal={successCount}
           validationError={validationError}
           onSubmit={handleSubmit}
         />
+
+        {successMessage ? (
+          <View
+            className="rounded-lg border px-4 py-3"
+            style={{
+              backgroundColor: colors.stateMuted,
+              borderColor: colors.stateSoft,
+            }}
+          >
+            <Text className="text-sm font-bold" style={{ color: colors.stateDark }}>
+              {successMessage}
+            </Text>
+          </View>
+        ) : null}
 
         <View className="gap-4">
           <DividerWithText />

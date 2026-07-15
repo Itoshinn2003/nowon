@@ -19,12 +19,14 @@ import {
 // API 通信や画面遷移は親が担当し、このフォームは入力値を組み立てて渡すだけにする。
 type Props = {
   isSubmitting?: boolean;
+  resetSignal?: number;
   validationError?: ErrorMessages;
   onSubmit?: (formData: SignUpFormState) => void;
 };
 
 export function SignUpForm({
   isSubmitting = false,
+  resetSignal = 0,
   validationError = [],
   onSubmit,
 }: Props) {
@@ -45,6 +47,19 @@ export function SignUpForm({
       password: false,
       passwordConfirmation: false,
     });
+
+  useEffect(() => {
+    setFormData({
+      email: "",
+      password: "",
+      passwordConfirmation: "",
+    });
+    setVisibleValidationError({
+      email: false,
+      password: false,
+      passwordConfirmation: false,
+    });
+  }, [resetSignal]);
 
   const isEmailValid = useMemo(
     () => emailValidate(formData.email),
@@ -173,7 +188,7 @@ export function SignUpForm({
       </View>
 
       <Button mode="contained" disabled={!canSubmit} onPress={handleSubmit}>
-        新規登録する
+        新規登録
       </Button>
     </View>
   );

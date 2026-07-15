@@ -2,8 +2,13 @@ import { useState } from "react";
 
 import type { ErrorMessages } from "@/src/types/auth";
 
+type FinishSubmittingOptions = {
+  succeeded?: boolean;
+};
+
 export function useSubmitState() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successCount, setSuccessCount] = useState(0);
   const [validationError, setValidationErrorState] = useState<ErrorMessages>(
     [],
   );
@@ -13,8 +18,12 @@ export function useSubmitState() {
     setValidationErrorState([]);
   };
 
-  const finishSubmitting = () => {
+  const finishSubmitting = (options: FinishSubmittingOptions = {}) => {
     setIsSubmitting(false);
+
+    if (options.succeeded) {
+      setSuccessCount((currentSuccessCount) => currentSuccessCount + 1);
+    }
   };
 
   const setValidationError = (error: ErrorMessages) => {
@@ -23,6 +32,7 @@ export function useSubmitState() {
 
   return {
     isSubmitting,
+    successCount,
     validationError,
     startSubmitting,
     finishSubmitting,

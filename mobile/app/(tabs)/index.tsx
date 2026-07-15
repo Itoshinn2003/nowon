@@ -3,7 +3,6 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, DeviceEventEmitter, Pressable, Text, View } from "react-native";
 import MapView, {
-  PROVIDER_GOOGLE,
   type LatLng,
   type Region,
 } from "react-native-maps";
@@ -21,7 +20,6 @@ import { RecruitmentMapMarker } from "@/src/components/map/RecruitmentMapMarker"
 import { createRecruitmentApplication } from "@/src/api/recruitmentApplications";
 import { subscribeToRecruitments } from "@/src/api/recruitmentCable";
 import { colors } from "@/src/constants/colors";
-import { minimalMapStyle } from "@/src/constants/map";
 import { useRecruitmentCategories } from "@/src/hooks/useRecruitmentCategories";
 import { useRecruitmentApplications } from "@/src/hooks/useRecruitmentApplications";
 import { useSubmitState } from "@/src/hooks/useSubmitState";
@@ -268,8 +266,6 @@ export default function MapScreen() {
   return (
     <View className="flex-1 bg-white">
       <MapView
-        provider={PROVIDER_GOOGLE}
-        customMapStyle={minimalMapStyle}
         style={{ flex: 1 }}
         onPress={(event) => {
           if (event.nativeEvent.action === "marker-press") return;
