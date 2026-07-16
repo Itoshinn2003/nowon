@@ -1,4 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import * as Location from "expo-location";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, DeviceEventEmitter, Pressable, Text, View } from "react-native";
@@ -45,6 +46,7 @@ const INITIAL_BOUNDS = boundsFromRegion(INITIAL_REGION);
 const MAP_RELOAD_DEBOUNCE_MS = 350;
 
 export default function MapScreen() {
+  const mapRef = useRef<MapView | null>(null);
   const { categories } = useRecruitmentCategories();
   const { recruitments, reloadRecruitments } = useRecruitments({
     loadOnMount: false,
@@ -97,6 +99,37 @@ export default function MapScreen() {
     reloadProfile,
     reloadRecruitments,
   ]);
+
+  const moveToCurrentLocation = useCallback(async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== Location.PermissionStatus.GRANTED) {
+        Alert.alert(
+          "現在地を取得できません",
+          "端末の設定で位置情報の利用を許可してください。"
+        );
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const region: Region = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: INITIAL_REGION.latitudeDelta,
+        longitudeDelta: INITIAL_REGION.longitudeDelta,
+      };
+
+      mapRef.current?.animateToRegion(region, 350);
+      visibleBoundsRef.current = boundsFromRegion(region);
+      loadMapData(visibleBoundsRef.current);
+    } catch {
+      Alert.alert(
+        "現在地を取得できません",
+        "時間をおいてもう一度お試しください。"
+      );
+    }
+  }, [loadMapData]);
 
   const handleRegionChangeComplete = useCallback(
     (region: Region) => {
@@ -266,6 +299,7 @@ export default function MapScreen() {
   return (
     <View className="flex-1 bg-white">
       <MapView
+        ref={mapRef}
         style={{ flex: 1 }}
         onPress={(event) => {
           if (event.nativeEvent.action === "marker-press") return;
@@ -278,7 +312,7 @@ export default function MapScreen() {
         onRegionChangeComplete={handleRegionChangeComplete}
         showsUserLocation
         showsCompass={false}
-        showsMyLocationButton={true}
+        showsMyLocationButton={false}
       >
         {filteredRecruitments.map((recruitment) => {
           const latitude = Number(recruitment.latitude);
@@ -321,8 +355,11 @@ export default function MapScreen() {
         <FontAwesome name="sliders" size={18} color={colors.textPrimary} />
       </Pressable>
 
-      {/* その下のボタン */}
-      <Pressable className="absolute right-5 top-32 h-14 w-14 items-center justify-center rounded-full bg-white/95 shadow-md">
+      {/* 現在地ボタン */}
+      <Pressable
+        className="absolute bottom-24 right-5 h-14 w-14 items-center justify-center rounded-full bg-white/95 shadow-md"
+        onPress={moveToCurrentLocation}
+      >
         <FontAwesome name="location-arrow" size={18} color={colors.state} />
       </Pressable>
 

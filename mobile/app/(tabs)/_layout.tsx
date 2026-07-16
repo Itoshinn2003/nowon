@@ -1,9 +1,10 @@
 import Feather from "@expo/vector-icons/Feather";
 import { Tabs } from "expo-router";
-import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { DeviceEventEmitter, Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { subscribeToChatNotifications } from "@/src/api/chatNotificationsCable";
 import { colors } from "@/src/constants/colors";
 import { useProfile } from "@/src/hooks/useProfile";
 
@@ -77,11 +78,39 @@ function TabIconFrame({ children }: { children: React.ReactNode }) {
 }
 
 export default function TabLayout() {
+  const chatNotificationsSubscriptionRef = useRef<{ close: () => void } | null>(
+    null
+  );
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(
     insets.bottom - TAB_BAR_BOTTOM_INSET_REDUCTION,
     TAB_BAR_MIN_BOTTOM_PADDING
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    subscribeToChatNotifications({
+      onMessage: (payload) => {
+        DeviceEventEmitter.emit("chatMessageReceived", payload);
+      },
+    })
+      .then((subscription) => {
+        if (!isMounted) {
+          subscription.close();
+          return;
+        }
+
+        chatNotificationsSubscriptionRef.current = subscription;
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isMounted = false;
+      chatNotificationsSubscriptionRef.current?.close();
+      chatNotificationsSubscriptionRef.current = null;
+    };
+  }, []);
 
   return (
     <Tabs

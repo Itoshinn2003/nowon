@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { PaperProvider } from "react-native-paper";
 
+import { ProfileProvider } from "@/src/hooks/useProfile";
 import { AuthProvider, useAuthStore } from "@/src/stores/authStore";
 
 const STARTUP_SPLASH_DURATION_MS = 800;
@@ -73,7 +74,11 @@ function AuthNavigation({
   } else if (isLoggedIn && inAuthGroup) {
     content = <Redirect href="/" />;
   } else {
-    content = <Stack screenOptions={{ headerShown: false }}></Stack>;
+    content = (
+      <ProfileProvider>
+        <Stack screenOptions={{ headerShown: false }}></Stack>
+      </ProfileProvider>
+    );
   }
 
   return content;
