@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import {
   DeviceEventEmitter,
+  Keyboard,
   Pressable,
   ScrollView,
   Text,
@@ -95,6 +96,8 @@ export default function RecruitmentNewScreen() {
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-4 py-6 pb-12"
+        keyboardShouldPersistTaps="handled"
+        onTouchStart={() => Keyboard.dismiss()}
       >
         <RecruitmentCreateForm
           recruitmentType={recruitmentType}

@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
-import { RefreshControl, Text, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { DeviceEventEmitter, RefreshControl, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { getChatRooms } from "@/src/api/chat";
@@ -43,6 +43,17 @@ export default function ChatScreen() {
       loadChats();
     }, [loadChats])
   );
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      "chatMessageReceived",
+      () => {
+        loadChats(true);
+      }
+    );
+
+    return () => subscription.remove();
+  }, [loadChats]);
 
   function handlePressChat(chatId: number) {
     router.push({

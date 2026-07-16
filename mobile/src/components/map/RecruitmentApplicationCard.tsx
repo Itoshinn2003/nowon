@@ -1,5 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Image, Pressable, Text, TextInput, View } from "react-native";
+import { Image, Keyboard, Pressable, Text, TextInput, View } from "react-native";
 import { Button } from "react-native-paper";
 
 import { colors } from "@/src/constants/colors";
@@ -41,6 +41,7 @@ export function RecruitmentApplicationCard({
   return (
     <View
       className="absolute bottom-[86px] left-4 right-4 rounded-[30px] bg-white/95 px-4 pb-4 pt-3 shadow-sm"
+      onTouchStart={() => Keyboard.dismiss()}
       style={{
         shadowColor: "#000000",
         shadowOpacity: 0.08,

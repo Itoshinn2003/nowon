@@ -17,6 +17,15 @@ export function ChatListItem({
   const previewParticipant =
     chat.participants.find((participant) => participant.user_id !== currentUserId) ??
     chat.participants[0];
+  const currentParticipant = chat.participants.find(
+    (participant) => participant.user_id === currentUserId
+  );
+  const hasUnreadMessage = Boolean(
+    currentUserId &&
+      chat.last_message &&
+      chat.last_message.user_id !== currentUserId &&
+      chat.last_message.id > (currentParticipant?.last_read_message_id ?? 0)
+  );
 
   return (
     <Pressable
@@ -32,19 +41,38 @@ export function ChatListItem({
       <View className="min-w-0 flex-1 py-2.5">
         <View className="flex-row items-baseline gap-3">
           <Text
-            className="min-w-0 flex-1 text-[15px] font-semibold text-gray-950"
+            className={[
+              "min-w-0 flex-1 text-[15px] text-gray-950",
+              hasUnreadMessage ? "font-extrabold" : "font-semibold",
+            ].join(" ")}
             numberOfLines={1}
           >
             {chat.title}
           </Text>
-          <Text className="text-[12px] text-gray-400">
+          <Text
+            className={[
+              "text-[12px]",
+              hasUnreadMessage ? "font-bold text-gray-900" : "text-gray-400",
+            ].join(" ")}
+          >
             {formatChatTime(chat.last_message?.created_at ?? chat.updated_at)}
           </Text>
         </View>
 
-        <Text className="mt-0.5 text-[14px] leading-5 text-gray-500" numberOfLines={1}>
-          {chat.last_message?.body ?? "チャットが作成されました"}
-        </Text>
+        <View className="mt-0.5 flex-row items-center gap-2">
+          {hasUnreadMessage ? (
+            <View className="h-2 w-2 rounded-full bg-blue-600" />
+          ) : null}
+          <Text
+            className={[
+              "min-w-0 flex-1 text-[14px] leading-5",
+              hasUnreadMessage ? "font-bold text-gray-950" : "text-gray-500",
+            ].join(" ")}
+            numberOfLines={1}
+          >
+            {chat.last_message?.body ?? "チャットが作成されました"}
+          </Text>
+        </View>
       </View>
     </Pressable>
   );

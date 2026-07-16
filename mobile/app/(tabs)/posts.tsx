@@ -86,12 +86,33 @@ export default function PostsScreen() {
   const appliedRecruitments = useMemo(
     () =>
       applications
+        .filter((application) => application.recruitment?.status !== "matched")
         .map((application) => application.recruitment)
         .filter((recruitment): recruitment is Recruitment =>
           Boolean(recruitment)
         ),
     [applications]
   );
+  const matchedRecruitments = useMemo(() => {
+    const ownMatchedRecruitments = myRecruitments.filter(
+      (recruitment) => recruitment.status === "matched"
+    );
+    const acceptedMatchedRecruitments = applications
+      .filter(
+        (application) =>
+          application.status === "accepted" &&
+          application.recruitment?.status === "matched"
+      )
+      .map((application) => application.recruitment)
+      .filter((recruitment): recruitment is Recruitment =>
+        Boolean(recruitment)
+      );
+
+    return uniqueRecruitments([
+      ...ownMatchedRecruitments,
+      ...acceptedMatchedRecruitments,
+    ]);
+  }, [applications, myRecruitments]);
   const cancelingAppliedRecruitmentId =
     applications.find((application) => application.id === cancelingApplicationId)
       ?.recruitment_id ?? null;
@@ -102,22 +123,19 @@ export default function PostsScreen() {
       }
 
       if (selectedTab === "applied") return appliedRecruitments;
-      if (selectedTab === "matched") {
-        return myRecruitments.filter(
-          (recruitment) => recruitment.status === "matched"
-        );
-      }
+      if (selectedTab === "matched") return matchedRecruitments;
 
       return [];
     },
-    [appliedRecruitments, myRecruitments, selectedTab]
+    [appliedRecruitments, matchedRecruitments, myRecruitments, selectedTab]
   );
   const displayedErrorMessage =
     cancelErrorMessage || errorMessage || applicationsErrorMessage;
 
   if (
     (isLoading && selectedTab === "mine") ||
-    (isLoadingApplications && selectedTab === "applied")
+    (isLoadingApplications && selectedTab === "applied") ||
+    ((isLoading || isLoadingApplications) && selectedTab === "matched")
   ) {
     return <LoadingScreen />;
   }
@@ -169,7 +187,11 @@ export default function PostsScreen() {
     setSelectedRecruitmentApplications([]);
     setSelectedRecruitmentApplicationsErrorMessage("");
 
-    if (selectedTab === "mine" || selectedTab === "matched") {
+    if (
+      myRecruitments.some(
+        (currentRecruitment) => currentRecruitment.id === recruitment.id
+      )
+    ) {
       loadSelectedRecruitmentApplications(recruitment);
     }
   }
@@ -396,9 +418,11 @@ export default function PostsScreen() {
         onCancelAcceptApplication={requestCancelAcceptApplication}
         onMatchRecruitment={requestMatchRecruitment}
         onPressRecruitmentDetail={handlePressRecruitmentDetail}
-        onPressApplicantProfile={(application) =>
-          router.push(`/profiles/${application.user_id}`)
-        }
+        onPressApplicantProfile={(application) => {
+          setSelectedRecruitment(null);
+          setSelectedRecruitmentApplications([]);
+          router.push(`/profiles/${application.user_id}`);
+        }}
         onClose={() => setSelectedRecruitment(null)}
       />
     </SafeAreaView>
@@ -420,4 +444,15 @@ function isRecruitmentOpen(recruitment: Recruitment) {
     Number.isFinite(expiresAt) &&
     expiresAt > Date.now()
   );
+}
+
+function uniqueRecruitments(recruitments: Recruitment[]) {
+  const seenIds = new Set<number>();
+
+  return recruitments.filter((recruitment) => {
+    if (seenIds.has(recruitment.id)) return false;
+
+    seenIds.add(recruitment.id);
+    return true;
+  });
 }

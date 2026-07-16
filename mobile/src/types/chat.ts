@@ -68,3 +68,9 @@ export type ChatCablePayload =
       is_typing: boolean;
       user: TypingUser;
     };
+
+export type ChatNotificationCablePayload = {
+  type: "chat_message_created";
+  chat_room_id: number;
+  message: ChatMessage;
+};

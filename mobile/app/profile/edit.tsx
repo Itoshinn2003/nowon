@@ -15,7 +15,13 @@ import {
 } from "@/src/utils/profile";
 
 export default function ProfileEditScreen() {
-  const { profile, isLoading, errorMessage, setErrorMessage } = useProfile();
+  const {
+    profile,
+    setProfile,
+    isLoading,
+    errorMessage,
+    setErrorMessage,
+  } = useProfile();
   const {
     isSubmitting,
     startSubmitting,
@@ -27,13 +33,14 @@ export default function ProfileEditScreen() {
     setErrorMessage("");
 
     try {
-      await saveProfile({
+      const updatedProfile = await saveProfile({
         nickname: formData.nickname.trim(),
         birthDate: formatDate(formData.birthDate),
         gender: formData.gender,
         bio: formData.bio.trim(),
       });
 
+      setProfile(updatedProfile);
       router.back();
     } catch (error) {
       setErrorMessage(
