@@ -69,7 +69,7 @@ aliases:
 # Use a persistent storage volume for sqlite database files and local Active Storage files.
 # Recommended to change this to a mounted volume path that is backed up off server.
 volumes:
-  - "server_storage:/rails/storage"
+  - "server_storage:/server/storage"
 
 
 # Configure the image builder.
