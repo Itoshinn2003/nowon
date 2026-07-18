@@ -4,7 +4,7 @@
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/app-icon.png",
     "scheme": [
       "mobile",
       "com.googleusercontent.apps.992345631859-210k21u2mnrde78sgd79mmsaa7hgig6n"
