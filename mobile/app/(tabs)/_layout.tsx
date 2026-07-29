@@ -1,4 +1,5 @@
 import Feather from "@expo/vector-icons/Feather";
+import * as Haptics from "expo-haptics";
 import { Tabs } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { DeviceEventEmitter, Image, StyleSheet, View } from "react-native";
@@ -81,6 +82,8 @@ export default function TabLayout() {
   const chatNotificationsSubscriptionRef = useRef<{ close: () => void } | null>(
     null
   );
+  const currentUserIdRef = useRef<number | null>(null);
+  const { profile } = useProfile();
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(
     insets.bottom - TAB_BAR_BOTTOM_INSET_REDUCTION,
@@ -88,10 +91,25 @@ export default function TabLayout() {
   );
 
   useEffect(() => {
+    currentUserIdRef.current = profile?.userId ?? null;
+  }, [profile?.userId]);
+
+  useEffect(() => {
     let isMounted = true;
 
     subscribeToChatNotifications({
       onMessage: (payload) => {
+        const currentUserId = currentUserIdRef.current;
+
+        if (
+          currentUserId !== null &&
+          payload.message.user_id !== currentUserId
+        ) {
+          void Haptics.notificationAsync(
+            Haptics.NotificationFeedbackType.Success
+          ).catch(() => undefined);
+        }
+
         DeviceEventEmitter.emit("chatMessageReceived", payload);
       },
     })
