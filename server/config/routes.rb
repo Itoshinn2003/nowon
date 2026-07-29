@@ -12,6 +12,7 @@ Rails.application.routes.draw do
     patch :complete_onboarding
     resources :photos, only: %i[ create destroy ], controller: "profile_photos"
   end
+  resource :account, only: %i[ destroy ], controller: "accounts"
   resources :profiles, only: %i[ show ], controller: "profiles"
 
   resources :recruitment_categories, only: %i[ index ]

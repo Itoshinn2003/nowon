@@ -49,6 +49,16 @@ class ProfilesControllerTest < ActionDispatch::IntegrationTest
     assert_equal user.onboarding_completed_at.iso8601, response.parsed_body["onboarding_completed_at"]
   end
 
+  test "destroy account removes the current user" do
+    user = create_user("delete-account-#{SecureRandom.hex(4)}@example.com")
+
+    assert_difference("User.count", -1) do
+      delete "/account", headers: user.create_new_auth_token
+    end
+
+    assert_response :no_content
+  end
+
   private
 
   def create_user(email)
