@@ -4,12 +4,13 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 
-import { getProfile, getUserProfile } from "@/src/api/profile";
-import type { UserProfile } from "@/src/types/profile";
+import { getCurrentProfile, getUserProfile } from "@/src/api/profile";
+import type { CurrentProfileState, UserProfile } from "@/src/types/profile";
 import { errorMessageFromError } from "@/src/utils/profile";
 
 type UseProfileOptions = {
@@ -19,10 +20,12 @@ type UseProfileOptions = {
 type ProfileState = {
   profile: UserProfile | null;
   setProfile: (profile: UserProfile | null) => void;
+  onboardingCompletedAt: string | null;
+  setOnboardingCompletedAt: (completedAt: string | null) => void;
   isLoading: boolean;
   errorMessage: string;
   setErrorMessage: (message: string) => void;
-  reloadProfile: () => Promise<void>;
+  reloadProfile: () => Promise<CurrentProfileState | null>;
 };
 
 const ProfileContext = createContext<ProfileState | null>(null);
@@ -49,21 +52,32 @@ export function useProfile(_options: UseProfileOptions = {}) {
 
 function useProvideProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [onboardingCompletedAt, setOnboardingCompletedAt] = useState<
+    string | null
+  >(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const hasLoadedProfileRef = useRef(false);
 
   const loadProfile = useCallback(async () => {
-    setIsLoading(true);
+    if (!hasLoadedProfileRef.current) {
+      setIsLoading(true);
+    }
+
     setErrorMessage("");
 
     try {
-      const loadedProfile = await getProfile();
-      setProfile(loadedProfile);
+      const loadedProfile = await getCurrentProfile();
+      setProfile(loadedProfile.profile);
+      setOnboardingCompletedAt(loadedProfile.onboardingCompletedAt);
+      return loadedProfile;
     } catch (error) {
       setErrorMessage(
         errorMessageFromError(error, "プロフィールを取得できませんでした")
       );
+      return null;
     } finally {
+      hasLoadedProfileRef.current = true;
       setIsLoading(false);
     }
   }, []);
@@ -76,12 +90,14 @@ function useProvideProfile() {
     () => ({
       profile,
       setProfile,
+      onboardingCompletedAt,
+      setOnboardingCompletedAt,
       isLoading,
       errorMessage,
       setErrorMessage,
       reloadProfile: loadProfile,
     }),
-    [errorMessage, isLoading, loadProfile, profile]
+    [errorMessage, isLoading, loadProfile, onboardingCompletedAt, profile]
   );
 }
 

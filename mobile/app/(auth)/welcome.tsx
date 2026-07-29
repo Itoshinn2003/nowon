@@ -16,9 +16,6 @@ export default function WelcomeScreen() {
             resizeMode="contain"
             style={{ height: 88, width: 240 }}
           />
-          <Text className="text-center text-3xl font-bold text-gray-900">
-            ようこそ
-          </Text>
           <Text className="text-center text-base leading-6 text-gray-600">
             今近くで、同じ目的の人を見つけよう。
           </Text>

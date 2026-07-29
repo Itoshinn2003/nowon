@@ -1,4 +1,3 @@
-import * as ImagePicker from "expo-image-picker";
 import {
   ActivityIndicator,
   Alert,
@@ -14,6 +13,7 @@ import type {
   ProfilePhoto,
   UploadProfilePhotoParams,
 } from "@/src/types/profile";
+import { pickProfilePhoto } from "@/src/utils/profilePhotoPicker";
 
 type Props = {
   photos: ProfilePhoto[];
@@ -38,28 +38,11 @@ export function PhotoEditView({
       return;
     }
 
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const photo = await pickProfilePhoto();
 
-    if (!permission.granted) {
-      Alert.alert("写真へのアクセスを許可してください");
-      return;
+    if (photo) {
+      onAddPhoto(photo);
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      quality: 0.9,
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    });
-
-    if (result.canceled) return;
-
-    const asset = result.assets[0];
-
-    onAddPhoto({
-      uri: asset.uri,
-      name: asset.fileName ?? fileNameFromUri(asset.uri),
-      type: asset.mimeType ?? mimeTypeFromUri(asset.uri),
-    });
   }
 
   function handleDeletePhoto(photo: ProfilePhoto) {
@@ -126,19 +109,4 @@ export function PhotoEditView({
       </Button>
     </View>
   );
-}
-
-function fileNameFromUri(uri: string) {
-  return uri.split("/").pop() || "profile-photo.jpg";
-}
-
-function mimeTypeFromUri(uri: string) {
-  const extension = uri.split(".").pop()?.toLowerCase();
-
-  if (extension === "png") return "image/png";
-  if (extension === "webp") return "image/webp";
-  if (extension === "heic") return "image/heic";
-  if (extension === "heif") return "image/heif";
-
-  return "image/jpeg";
 }

@@ -5,7 +5,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { PaperProvider } from "react-native-paper";
 
-import { ProfileProvider } from "@/src/hooks/useProfile";
+import { LoadingScreen } from "@/src/components/ui/LoadingScreen";
+import { ProfileProvider, useProfile } from "@/src/hooks/useProfile";
 import { AuthProvider, useAuthStore } from "@/src/stores/authStore";
 
 const STARTUP_SPLASH_DURATION_MS = 800;
@@ -76,10 +77,31 @@ function AuthNavigation({
   } else {
     content = (
       <ProfileProvider>
-        <Stack screenOptions={{ headerShown: false }}></Stack>
+        <OnboardingNavigation />
       </ProfileProvider>
     );
   }
 
   return content;
+}
+
+function OnboardingNavigation() {
+  const segments = useSegments();
+  const { isLoading, errorMessage, onboardingCompletedAt } = useProfile();
+  const inOnboardingGroup = segments[0] === "onboarding";
+  const needsOnboarding = onboardingCompletedAt === null;
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (!errorMessage && needsOnboarding && !inOnboardingGroup) {
+    return <Redirect href="/onboarding/profile" />;
+  }
+
+  if (!errorMessage && !needsOnboarding && inOnboardingGroup) {
+    return <Redirect href="/" />;
+  }
+
+  return <Stack screenOptions={{ headerShown: false }} />;
 }

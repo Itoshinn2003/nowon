@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   }
 
   resource :profile, only: %i[ show update ], controller: "profiles" do
+    patch :complete_onboarding
     resources :photos, only: %i[ create destroy ], controller: "profile_photos"
   end
   resources :profiles, only: %i[ show ], controller: "profiles"

@@ -1,13 +1,12 @@
 import * as Google from "expo-auth-session/providers/google";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Platform } from "react-native";
+import { Alert, Image, Platform } from "react-native";
 import { Button } from "react-native-paper";
 import * as WebBrowser from "expo-web-browser";
 
 import { signInWithGoogle } from "@/src/api/auth";
 import { env } from "@/src/config/env";
-import { colors } from "@/src/constants/colors";
 import { useAuthStore } from "@/src/stores/authStore";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -84,11 +83,17 @@ export function GoogleContinueButton() {
   return (
     <Button
       mode="outlined"
+      icon={({ size }) => (
+        <Image
+          source={require("@/assets/images/google-g.png")}
+          style={{ height: size, width: size }}
+        />
+      )}
       loading={isSubmitting}
       disabled={isSubmitting}
-      textColor={colors.state}
-      style={{ borderColor: colors.state }}
-      theme={{ colors: { primary: colors.state } }}
+      textColor="#1F2937"
+      style={{ borderColor: "#D1D5DB" }}
+      theme={{ colors: { primary: "#1F2937" } }}
       onPress={handlePress}
     >
       Googleで続ける
