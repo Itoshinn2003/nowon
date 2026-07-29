@@ -18,6 +18,11 @@ export type UserProfile = {
   photos: ProfilePhoto[];
 };
 
+export type CurrentProfileState = {
+  profile: UserProfile | null;
+  onboardingCompletedAt: string | null;
+};
+
 export type ProfileFormState = {
   nickname: string;
   birthDate: Date;
@@ -26,6 +31,7 @@ export type ProfileFormState = {
 };
 
 export type ProfileResponse = {
+  onboarding_completed_at: string | null;
   profile: {
     id: number;
     user_id: number;

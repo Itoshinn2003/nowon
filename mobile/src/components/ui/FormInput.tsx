@@ -1,9 +1,12 @@
 import { Text, TextInput, TextInputProps, View } from "react-native";
 
+import { FieldLabel } from "@/src/components/ui/FieldLabel";
+
 type Props = TextInputProps & {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
+  required?: boolean;
   isValid?: boolean;
   errorMessage?: string;
 };
@@ -12,6 +15,7 @@ export function FormInput({
   label,
   value,
   onChangeText,
+  required = false,
   isValid = true,
   errorMessage,
   className,
@@ -31,7 +35,7 @@ export function FormInput({
 
   return (
     <View className="gap-2">
-      <Text className="text-sm font-medium text-gray-700">{label}</Text>
+      <FieldLabel label={label} required={required} />
 
       <TextInput
         className={[

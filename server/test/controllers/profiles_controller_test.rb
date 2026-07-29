@@ -27,6 +27,28 @@ class ProfilesControllerTest < ActionDispatch::IntegrationTest
     assert_nil response.parsed_body["profile"]
   end
 
+  test "complete onboarding does not update completed at without a profile photo" do
+    user = create_user("onboarding-no-photo-#{SecureRandom.hex(4)}@example.com")
+    create_profile(user)
+
+    patch "/profile/complete_onboarding", headers: user.create_new_auth_token
+
+    assert_response :unprocessable_entity
+    assert_nil user.reload.onboarding_completed_at
+  end
+
+  test "complete onboarding updates completed at with a valid profile and photo" do
+    user = create_user("onboarding-complete-#{SecureRandom.hex(4)}@example.com")
+    profile = create_profile(user)
+    create_photo(profile)
+
+    patch "/profile/complete_onboarding", headers: user.create_new_auth_token
+
+    assert_response :success
+    assert_not_nil user.reload.onboarding_completed_at
+    assert_equal user.onboarding_completed_at.iso8601, response.parsed_body["onboarding_completed_at"]
+  end
+
   private
 
   def create_user(email)
@@ -45,6 +67,18 @@ class ProfilesControllerTest < ActionDispatch::IntegrationTest
       birth_date: Date.new(2000, 1, 1),
       gender: "male",
       bio: "よろしくお願いします"
+    )
+  end
+
+  def create_photo(profile)
+    profile.profile_photos.create!(
+      position: 1,
+      status: "approved",
+      image: {
+        io: StringIO.new("image"),
+        filename: "profile.jpg",
+        content_type: "image/jpeg"
+      }
     )
   end
 end

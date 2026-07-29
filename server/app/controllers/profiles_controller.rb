@@ -7,16 +7,14 @@ class ProfilesController < ApplicationController
              .includes(user_profile: { profile_photos: { image_attachment: :blob } })
              .find(params[:id])
 
-      render json: {
-        profile: serialized_profile(
-          user.user_profile,
-          include_all_photos: user.id == current_user.id
-        )
-      }
+      render json: profile_response(
+        user.user_profile,
+        include_all_photos: user.id == current_user.id
+      )
       return
     end
 
-    render json: { profile: serialized_profile(current_user.user_profile) }
+    render json: profile_response(current_user.user_profile)
   end
 
   def update
@@ -24,10 +22,31 @@ class ProfilesController < ApplicationController
     status = profile.new_record? ? :created : :ok
 
     if profile.update(profile_params)
-      render json: { profile: serialized_profile(profile) }, status: status
+      render json: profile_response(profile), status: status
     else
       render json: { errors: profile.errors.to_hash }, status: :unprocessable_entity
     end
+  end
+
+  def complete_onboarding
+    profile = current_user.user_profile
+
+    unless profile&.valid?
+      return render json: {
+        errors: profile&.errors&.to_hash || { profile: [ "must exist" ] }
+      }, status: :unprocessable_entity
+    end
+
+    unless profile.profile_photos.exists?
+      return render json: {
+        errors: { photos: [ "を1枚以上登録してください" ] }
+      }, status: :unprocessable_entity
+    end
+
+    current_user.update!(onboarding_completed_at: Time.current)
+    current_user.reload
+
+    render json: profile_response(profile.reload)
   end
 
   private
@@ -51,6 +70,13 @@ class ProfilesController < ApplicationController
       gender: profile.gender,
       bio: profile.bio,
       photos: photos.ordered.map { |photo| serialized_photo(photo) }
+    }
+  end
+
+  def profile_response(profile, include_all_photos: true)
+    {
+      profile: serialized_profile(profile, include_all_photos: include_all_photos),
+      onboarding_completed_at: current_user.onboarding_completed_at&.iso8601
     }
   end
 

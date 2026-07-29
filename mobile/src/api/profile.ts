@@ -7,20 +7,27 @@ import {
 } from "@/src/stores/authStorage";
 import type { AuthHeaders } from "@/src/types/auth";
 import type {
+  CurrentProfileState,
   ProfileResponse,
   SaveProfileParams,
   UploadProfilePhotoParams,
   UserProfile,
 } from "@/src/types/profile";
 
-export async function getProfile() {
+export async function getCurrentProfile() {
   const response = await axios.get<ProfileResponse>(`${env.apiBaseUrl}/profile`, {
     headers: await requestAuthHeaders(),
   });
 
   await persistResponseAuthHeaders(response);
 
-  return normalizeProfile(response.data.profile);
+  return normalizeCurrentProfile(response.data);
+}
+
+export async function getProfile() {
+  const currentProfile = await getCurrentProfile();
+
+  return currentProfile.profile;
 }
 
 export async function getUserProfile(userId: number) {
@@ -55,6 +62,20 @@ export async function saveProfile(params: SaveProfileParams) {
   await persistResponseAuthHeaders(response);
 
   return normalizeProfile(response.data.profile);
+}
+
+export async function completeOnboarding() {
+  const response = await axios.patch<ProfileResponse>(
+    `${env.apiBaseUrl}/profile/complete_onboarding`,
+    {},
+    {
+      headers: await requestAuthHeaders(),
+    }
+  );
+
+  await persistResponseAuthHeaders(response);
+
+  return normalizeCurrentProfile(response.data);
 }
 
 export async function uploadProfilePhoto(params: UploadProfilePhotoParams) {
@@ -128,6 +149,13 @@ function responseAuthHeaders(response: AxiosResponse): AuthHeaders | null {
     uid,
     expiry,
     tokenType: response.headers["token-type"],
+  };
+}
+
+function normalizeCurrentProfile(response: ProfileResponse): CurrentProfileState {
+  return {
+    profile: normalizeProfile(response.profile),
+    onboardingCompletedAt: response.onboarding_completed_at,
   };
 }
 

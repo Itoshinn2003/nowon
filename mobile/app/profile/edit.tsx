@@ -71,6 +71,8 @@ export default function ProfileEditScreen() {
           <ProfileEditForm
             profile={profile}
             isSubmitting={isSubmitting}
+            showBirthDate={false}
+            showGender={false}
             onCancel={() => router.back()}
             onSubmit={handleSubmit}
           />
