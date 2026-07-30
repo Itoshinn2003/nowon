@@ -44,9 +44,11 @@ export function RecruitmentSummaryCard({
           <Text className="text-base font-bold text-gray-950" numberOfLines={2}>
             {recruitment.purpose}
           </Text>
-          <Text className="text-sm text-gray-500" numberOfLines={1}>
-            {recruitment.vibe}
-          </Text>
+          {recruitment.description ? (
+            <Text className="text-sm text-gray-500" numberOfLines={1}>
+              {recruitment.description}
+            </Text>
+          ) : null}
         </View>
 
         <View className="border-t border-gray-100 pt-3">

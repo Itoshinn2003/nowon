@@ -138,7 +138,6 @@ class RecruitmentsController < ApplicationController
       :recruitment_type,
       :recruitment_category_id,
       :purpose,
-      :vibe,
       :recruiting_people_min,
       :recruiting_people_max,
       :application_limit,

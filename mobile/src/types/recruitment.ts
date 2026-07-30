@@ -104,13 +104,12 @@ export type CreateRecruitmentParams = {
   recruitmentType: RecruitmentType;
   recruitmentCategoryId: number;
   purpose: string;
-  vibe: string;
   recruitingPeopleMin: number;
   recruitingPeopleMax: number;
   allowedGenderPolicy: AllowedGenderPolicy;
   latitude: number;
   longitude: number;
-  description?: string;
+  description: string;
   safetyConfirmed: boolean;
 };
 
@@ -118,7 +117,6 @@ export type RecruitmentFormState = {
   recruitmentType: RecruitmentType;
   recruitmentCategoryId: number | null;
   purpose: string;
-  vibe: string;
   recruitingPeopleMin: string;
   recruitingPeopleMax: string;
   allowedGenderPolicy: AllowedGenderPolicy;

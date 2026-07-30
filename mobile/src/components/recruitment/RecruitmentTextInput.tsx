@@ -4,7 +4,7 @@ import { colors } from "@/src/constants/colors";
 
 type Props = {
   label: string;
-  value: string;
+  value?: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
   maxLength?: number;
@@ -21,6 +21,8 @@ export function RecruitmentTextInput({
   keyboardType = "default",
   multiline = false,
 }: Props) {
+  const safeValue = value ?? "";
+
   return (
     <View className="gap-2">
       <Text className="text-sm font-bold text-gray-900">{label}</Text>
@@ -30,7 +32,7 @@ export function RecruitmentTextInput({
           multiline ? "min-h-24" : "",
         ].join(" ")}
         style={{ backgroundColor: colors.surface }}
-        value={value}
+        value={safeValue}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor="#9CA3AF"
@@ -41,7 +43,7 @@ export function RecruitmentTextInput({
       />
       {maxLength ? (
         <Text className="text-right text-xs text-gray-500">
-          {value.length}/{maxLength}
+          {safeValue.length}/{maxLength}
         </Text>
       ) : null}
     </View>
