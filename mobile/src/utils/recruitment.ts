@@ -15,7 +15,6 @@ export function defaultRecruitmentFormState(
     recruitmentType,
     recruitmentCategoryId: null,
     purpose: "",
-    vibe: "",
     recruitingPeopleMin:
       recruitmentType === "group" ? String(GROUP_RECRUITING_PEOPLE_MIN) : "1",
     recruitingPeopleMax:

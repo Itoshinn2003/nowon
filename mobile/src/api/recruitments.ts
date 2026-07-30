@@ -82,7 +82,6 @@ export async function createRecruitment(params: CreateRecruitmentParams) {
         recruitment_type: params.recruitmentType,
         recruitment_category_id: params.recruitmentCategoryId,
         purpose: params.purpose,
-        vibe: params.vibe,
         recruiting_people_min: params.recruitingPeopleMin,
         recruiting_people_max: params.recruitingPeopleMax,
         application_limit: APPLICATION_LIMIT,

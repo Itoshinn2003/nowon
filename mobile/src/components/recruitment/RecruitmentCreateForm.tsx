@@ -54,8 +54,8 @@ export function RecruitmentCreateForm({
       formData.recruitmentCategoryId !== null &&
       formData.purpose.trim().length > 0 &&
       formData.purpose.trim().length <= 30 &&
-      formData.vibe.trim().length > 0 &&
-      formData.vibe.trim().length <= 30 &&
+      formData.description.trim().length > 0 &&
+      formData.description.trim().length <= 120 &&
       Number.isFinite(recruitingPeopleMin) &&
       Number.isFinite(recruitingPeopleMax) &&
       recruitingPeopleMin <= recruitingPeopleMax &&
@@ -127,14 +127,6 @@ export function RecruitmentCreateForm({
         value={formData.purpose}
         onChangeText={(text) => updateForm("purpose", text)}
         placeholder="ライブ後に感想話したい"
-        maxLength={30}
-      />
-
-      <RecruitmentTextInput
-        label="雰囲気"
-        value={formData.vibe}
-        onChangeText={(text) => updateForm("vibe", text)}
-        placeholder="30分だけ気軽に"
         maxLength={30}
       />
 

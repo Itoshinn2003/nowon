@@ -115,9 +115,6 @@ function RecruitmentDetail({ recruitment }: { recruitment: Recruitment }) {
             <Text className="text-2xl font-extrabold text-gray-950">
               {recruitment.purpose}
             </Text>
-            <Text className="text-sm leading-5 text-gray-500">
-              {recruitment.vibe}
-            </Text>
           </View>
         </View>
 
@@ -148,11 +145,6 @@ function RecruitmentDetail({ recruitment }: { recruitment: Recruitment }) {
           icon="flag"
           label="目的"
           value={recruitment.purpose}
-        />
-        <DetailRow
-          icon="comments"
-          label="雰囲気"
-          value={recruitment.vibe}
         />
         <DetailRow
           icon="tag"
