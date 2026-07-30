@@ -87,12 +87,14 @@ export function RecruitmentApplicationCard({
           >
             {recruitment.purpose}
           </Text>
-          <Text
-            className="mt-1 text-sm leading-5 text-gray-500"
-            numberOfLines={2}
-          >
-            {recruitment.vibe}
-          </Text>
+          {recruitment.description ? (
+            <Text
+              className="mt-1 text-sm leading-5 text-gray-500"
+              numberOfLines={2}
+            >
+              {recruitment.description}
+            </Text>
+          ) : null}
         </View>
 
         <Pressable

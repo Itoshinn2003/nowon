@@ -58,13 +58,12 @@ export default function RecruitmentNewScreen() {
         recruitmentType: formData.recruitmentType,
         recruitmentCategoryId: formData.recruitmentCategoryId as number,
         purpose: formData.purpose.trim(),
-        vibe: formData.vibe.trim(),
         recruitingPeopleMin: numberFromInput(formData.recruitingPeopleMin),
         recruitingPeopleMax: numberFromInput(formData.recruitingPeopleMax),
         allowedGenderPolicy: formData.allowedGenderPolicy,
         latitude: Number(latitude),
         longitude: Number(longitude),
-        description: formData.description.trim() || undefined,
+        description: formData.description.trim(),
         safetyConfirmed: formData.safetyConfirmed,
       });
 

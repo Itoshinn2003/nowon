@@ -27,13 +27,15 @@ class Recruitment < ApplicationRecord
 
   before_validation :set_default_expires_at, on: :create
   before_validation :set_fixed_application_limit
+  before_validation :set_default_vibe
 
   validates :user_id, presence: true
   validates :recruitment_type, presence: true
   validates :recruitment_category_id, presence: true
   validates :purpose, presence: true, length: { maximum: 30 }
+  validates :description, presence: true, on: :create
   validates :description, length: { maximum: 120 }, allow_blank: true
-  validates :vibe, presence: true, length: { maximum: 30 }
+  validates :vibe, length: { maximum: 30 }, allow_blank: true
   validates :recruiting_people_min, presence: true
   validates :recruiting_people_max, presence: true
   validates :application_limit, presence: true
@@ -90,6 +92,10 @@ class Recruitment < ApplicationRecord
 
   def set_fixed_application_limit
     self.application_limit = APPLICATION_LIMIT
+  end
+
+  def set_default_vibe
+    self.vibe = "" if vibe.nil?
   end
 
   def recruiting_people_min_is_not_greater_than_max

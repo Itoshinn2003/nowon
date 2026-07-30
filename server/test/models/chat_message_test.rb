@@ -34,6 +34,7 @@ class ChatMessageTest < ActiveSupport::TestCase
       recruitment_type: :one_to_one,
       purpose: "東京駅でランチ",
       vibe: "気軽に",
+      description: "駅前で少し話したいです",
       recruiting_people_min: 1,
       recruiting_people_max: 1,
       allowed_gender_policy: :anyone,

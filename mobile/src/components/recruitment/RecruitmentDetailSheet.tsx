@@ -97,9 +97,6 @@ export function RecruitmentDetailSheet({
                 <Text className="text-xl font-bold text-gray-950">
                   {recruitment.purpose}
                 </Text>
-                <Text className="text-sm text-gray-500">
-                  {recruitment.vibe}
-                </Text>
               </View>
               <Pressable
                 className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"

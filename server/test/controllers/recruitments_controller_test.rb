@@ -49,12 +49,12 @@ class RecruitmentsControllerTest < ActionDispatch::IntegrationTest
           recruitment_type: "one_to_one",
           recruitment_category_id: category.id,
           purpose: "ランチ",
-          vibe: "気軽に",
           recruiting_people_min: 1,
           recruiting_people_max: 1,
           allowed_gender_policy: "anyone",
           latitude: 35.681236,
           longitude: 139.767125,
+          description: "駅前で少し話したいです",
           safety_confirmed: true
         }
       }, headers: owner.create_new_auth_token
@@ -62,6 +62,7 @@ class RecruitmentsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :created
     assert_equal 1, broadcasts.size
+    assert_equal "", response.parsed_body.dig("recruitment", "vibe")
 
     message = broadcasts.first
     recruitment = message.fetch("recruitment")
@@ -122,6 +123,7 @@ class RecruitmentsControllerTest < ActionDispatch::IntegrationTest
       allowed_gender_policy: :anyone,
       latitude: latitude,
       longitude: longitude,
+      description: "駅前で少し話したいです",
       safety_confirmed: true
     )
   end
