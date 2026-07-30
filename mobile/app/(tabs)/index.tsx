@@ -78,6 +78,7 @@ export default function MapScreen() {
   const [applicationMessage, setApplicationMessage] = useState("");
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const visibleBoundsRef = useRef<RecruitmentBounds>(INITIAL_BOUNDS);
+  const hasCenteredInitialLocationRef = useRef(false);
   const mapReloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
@@ -100,16 +101,24 @@ export default function MapScreen() {
     reloadRecruitments,
   ]);
 
-  const moveToCurrentLocation = useCallback(async () => {
+  const centerMapOnCurrentLocation = useCallback(async ({
+    showAlert,
+  }: {
+    showAlert: boolean;
+  }) => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== Location.PermissionStatus.GRANTED) {
-        Alert.alert(
-          "現在地を取得できません",
-          "端末の設定で位置情報の利用を許可してください。"
-        );
-        return;
+        if (showAlert) {
+          Alert.alert(
+            "現在地を取得できません",
+            "端末の設定で位置情報の利用を許可してください。"
+          );
+        }
+
+        await loadMapData();
+        return false;
       }
 
       const location = await Location.getCurrentPositionAsync({});
@@ -122,14 +131,24 @@ export default function MapScreen() {
 
       mapRef.current?.animateToRegion(region, 350);
       visibleBoundsRef.current = boundsFromRegion(region);
-      loadMapData(visibleBoundsRef.current);
+      await loadMapData(visibleBoundsRef.current);
+      return true;
     } catch {
-      Alert.alert(
-        "現在地を取得できません",
-        "時間をおいてもう一度お試しください。"
-      );
+      if (showAlert) {
+        Alert.alert(
+          "現在地を取得できません",
+          "時間をおいてもう一度お試しください。"
+        );
+      }
+
+      await loadMapData();
+      return false;
     }
   }, [loadMapData]);
+
+  const moveToCurrentLocation = useCallback(() => {
+    centerMapOnCurrentLocation({ showAlert: true });
+  }, [centerMapOnCurrentLocation]);
 
   const handleRegionChangeComplete = useCallback(
     (region: Region) => {
@@ -168,7 +187,12 @@ export default function MapScreen() {
     useCallback(() => {
       let isFocused = true;
 
-      loadMapData();
+      if (hasCenteredInitialLocationRef.current) {
+        loadMapData();
+      } else {
+        hasCenteredInitialLocationRef.current = true;
+        centerMapOnCurrentLocation({ showAlert: false });
+      }
 
       subscribeToRecruitments({
         onMessage: handleRecruitmentCableMessage,
@@ -188,7 +212,7 @@ export default function MapScreen() {
         recruitmentSubscriptionRef.current?.close();
         recruitmentSubscriptionRef.current = null;
       };
-    }, [handleRecruitmentCableMessage, loadMapData])
+    }, [centerMapOnCurrentLocation, handleRecruitmentCableMessage, loadMapData])
   );
 
   useEffect(() => {
