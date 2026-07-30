@@ -133,7 +133,7 @@ export function ProfileEditForm({
             }
           >
             <Text className="text-base text-gray-900">
-              {formatDate(formData.birthDate)}
+              {formatJapaneseDate(formData.birthDate)}
             </Text>
           </Pressable>
           {isDatePickerVisible ? (
@@ -141,6 +141,9 @@ export function ProfileEditForm({
               value={formData.birthDate}
               mode="date"
               display={Platform.OS === "ios" ? "spinner" : "default"}
+              locale="ja-JP"
+              textColor="#111827"
+              themeVariant="light"
               maximumDate={new Date()}
               minimumDate={new Date(1900, 0, 1)}
               onChange={handleDateChange}
@@ -218,4 +221,12 @@ export function ProfileEditForm({
       </View>
     </View>
   );
+}
+
+function formatJapaneseDate(date: Date) {
+  return date.toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }

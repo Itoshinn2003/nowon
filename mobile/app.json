@@ -20,6 +20,10 @@
       "bundleIdentifier": "com.nowon.mobile",
       "supportsTablet": true,
       "infoPlist": {
+        "CFBundleDevelopmentRegion": "ja",
+        "CFBundleLocalizations": [
+          "ja"
+        ],
         "ITSAppUsesNonExemptEncryption": false,
         "NSLocationWhenInUseUsageDescription": "現在地周辺の募集を表示するために位置情報を使用します。"
       }
