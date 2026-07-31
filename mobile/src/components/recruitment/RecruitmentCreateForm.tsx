@@ -134,7 +134,7 @@ export function RecruitmentCreateForm({
         label="説明"
         value={formData.description}
         onChangeText={(text) => updateForm("description", text)}
-        placeholder="近くのファミレスかカフェで、今日のイベントについて少し話したいです"
+        placeholder="近くのファミレスかカフェで、今日のイベントについて30分程話したいです"
         maxLength={120}
         multiline
       />

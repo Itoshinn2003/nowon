@@ -1,6 +1,7 @@
 class Recruitment < ApplicationRecord
   APPLICATION_LIMIT = 10
   GROUP_RECRUITING_PEOPLE_MAX = 4
+  DEFAULT_DURATION = 2.hours
 
   belongs_to :user
   belongs_to :recruitment_category
@@ -87,7 +88,7 @@ class Recruitment < ApplicationRecord
   private
 
   def set_default_expires_at
-    self.expires_at ||= 60.minutes.from_now
+    self.expires_at ||= DEFAULT_DURATION.from_now
   end
 
   def set_fixed_application_limit
