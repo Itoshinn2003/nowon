@@ -7,6 +7,7 @@ import { PaperProvider } from "react-native-paper";
 
 import { LoadingScreen } from "@/src/components/ui/LoadingScreen";
 import { ProfileProvider, useProfile } from "@/src/hooks/useProfile";
+import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import { AuthProvider, useAuthStore } from "@/src/stores/authStore";
 
 const STARTUP_SPLASH_DURATION_MS = 800;
@@ -41,6 +42,8 @@ function AuthNavigation({
   const { status, isLoggedIn } = useAuthStore();
   const segments = useSegments();
   const [isReady, setIsReady] = useState(false);
+
+  usePushNotifications(isLoggedIn);
 
   useEffect(() => {
     if (status === "loading" || !isStartupSplashDone) return;

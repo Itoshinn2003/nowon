@@ -13,6 +13,8 @@ Rails.application.routes.draw do
     resources :photos, only: %i[ create destroy ], controller: "profile_photos"
   end
   resource :account, only: %i[ destroy ], controller: "accounts"
+  resources :push_tokens, only: %i[ create ]
+  delete "push_tokens", to: "push_tokens#destroy"
   resources :profiles, only: %i[ show ], controller: "profiles"
 
   resources :recruitment_categories, only: %i[ index ]

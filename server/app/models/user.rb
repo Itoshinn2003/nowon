@@ -10,4 +10,5 @@ class User < ApplicationRecord
   has_many :chat_participants, dependent: :destroy
   has_many :chat_rooms, through: :chat_participants
   has_many :chat_messages, dependent: :destroy
+  has_many :device_push_tokens, dependent: :destroy
 end

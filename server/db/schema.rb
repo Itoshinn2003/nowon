@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_18_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_06_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,6 +70,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_000000) do
     t.bigint "recruitment_id", null: false
     t.datetime "updated_at", null: false
     t.index ["recruitment_id"], name: "index_chat_rooms_on_recruitment_id", unique: true
+  end
+
+  create_table "device_push_tokens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: true, null: false
+    t.datetime "invalidated_at"
+    t.datetime "last_seen_at", null: false
+    t.string "platform", default: "unknown", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["token"], name: "index_device_push_tokens_on_token", unique: true
+    t.index ["user_id", "enabled"], name: "index_device_push_tokens_on_user_id_and_enabled"
+    t.index ["user_id"], name: "index_device_push_tokens_on_user_id"
+    t.check_constraint "platform::text = ANY (ARRAY['ios'::character varying, 'android'::character varying, 'web'::character varying, 'unknown'::character varying]::text[])", name: "chk_device_push_tokens_platform"
   end
 
   create_table "profile_photos", force: :cascade do |t|
@@ -336,6 +351,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_000000) do
   add_foreign_key "chat_participants", "chat_rooms"
   add_foreign_key "chat_participants", "users"
   add_foreign_key "chat_rooms", "recruitments"
+  add_foreign_key "device_push_tokens", "users"
   add_foreign_key "profile_photos", "user_profiles"
   add_foreign_key "recruitment_applications", "recruitments"
   add_foreign_key "recruitment_applications", "users"

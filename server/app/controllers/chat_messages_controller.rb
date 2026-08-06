@@ -23,6 +23,7 @@ class ChatMessagesController < ApplicationController
       mark_read!(room, message)
       ::ChatRoomChannel.broadcast_message(message)
       ::ChatNotificationsChannel.broadcast_message(message)
+      ::PushNotificationEvents.chat_message_created(message)
       render json: { message: serialized_chat_message(message) }, status: :created
     else
       render json: { errors: message.errors.to_hash }, status: :unprocessable_entity

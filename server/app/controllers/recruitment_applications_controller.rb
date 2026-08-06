@@ -8,6 +8,7 @@ class RecruitmentApplicationsController < ApplicationController
                   .build(application_params.merge(user: current_user))
 
     if application.save
+      ::PushNotificationEvents.recruitment_application_created(application)
       render json: { application: serialized_application(application) }, status: :created
     else
       render json: { errors: application.errors.to_hash }, status: :unprocessable_entity
@@ -73,10 +74,12 @@ class RecruitmentApplicationsController < ApplicationController
     end
 
     application.update!(status: :accepted)
+    ::PushNotificationEvents.recruitment_application_accepted(application)
 
     if recruitment.max_accepted?
       recruitment.update!(status: :matched, closed_at: Time.current)
       recruitment.ensure_chat_room!
+      ::PushNotificationEvents.recruitment_matched(recruitment)
     end
 
     render json: { application: serialized_application(application.reload) }
