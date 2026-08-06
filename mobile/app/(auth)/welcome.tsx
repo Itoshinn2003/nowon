@@ -12,7 +12,7 @@ export default function WelcomeScreen() {
       <View className="w-full gap-8">
         <View className="items-center gap-4">
           <Image
-            source={require("@/assets/images/The logo of NowOn.png")}
+            source={require("@/assets/images/NowOn.png")}
             resizeMode="contain"
             style={{ height: 88, width: 240 }}
           />

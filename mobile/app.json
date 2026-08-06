@@ -12,7 +12,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/The logo of NowOn.png",
+      "image": "./assets/images/NowOn.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
