@@ -1,10 +1,11 @@
 import Feather from "@expo/vector-icons/Feather";
 import * as Haptics from "expo-haptics";
 import { Tabs } from "expo-router";
-import React, { useEffect, useRef } from "react";
-import { DeviceEventEmitter, Image, StyleSheet, View } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { AppState, DeviceEventEmitter, Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { getChatRooms } from "@/src/api/chat";
 import { subscribeToChatNotifications } from "@/src/api/chatNotificationsCable";
 import { colors } from "@/src/constants/colors";
 import { useProfile } from "@/src/hooks/useProfile";
@@ -83,6 +84,7 @@ export default function TabLayout() {
     null
   );
   const currentUserIdRef = useRef<number | null>(null);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
   const { profile } = useProfile();
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(
@@ -93,6 +95,46 @@ export default function TabLayout() {
   useEffect(() => {
     currentUserIdRef.current = profile?.userId ?? null;
   }, [profile?.userId]);
+
+  const refreshUnreadChatCount = useCallback(async () => {
+    try {
+      const response = await getChatRooms();
+      const unreadCount = response.chat_rooms.reduce(
+        (total, chatRoom) => total + chatRoom.unread_count,
+        0
+      );
+
+      setUnreadChatCount(unreadCount);
+    } catch {
+      // The chat tab itself will show the connection error when opened.
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshUnreadChatCount();
+  }, [refreshUnreadChatCount]);
+
+  useEffect(() => {
+    const appStateSubscription = AppState.addEventListener(
+      "change",
+      (nextState) => {
+        if (nextState === "active") {
+          refreshUnreadChatCount();
+        }
+      }
+    );
+    const unreadCountSubscription = DeviceEventEmitter.addListener(
+      "chatUnreadCountRefresh",
+      () => {
+        refreshUnreadChatCount();
+      }
+    );
+
+    return () => {
+      appStateSubscription.remove();
+      unreadCountSubscription.remove();
+    };
+  }, [refreshUnreadChatCount]);
 
   useEffect(() => {
     let isMounted = true;
@@ -111,6 +153,7 @@ export default function TabLayout() {
         }
 
         DeviceEventEmitter.emit("chatMessageReceived", payload);
+        refreshUnreadChatCount();
       },
     })
       .then((subscription) => {
@@ -128,7 +171,7 @@ export default function TabLayout() {
       chatNotificationsSubscriptionRef.current?.close();
       chatNotificationsSubscriptionRef.current = null;
     };
-  }, []);
+  }, [refreshUnreadChatCount]);
 
   return (
     <Tabs
@@ -176,6 +219,7 @@ export default function TabLayout() {
         name="chat"
         options={{
           title: "チャット",
+          tabBarBadge: unreadChatCount > 0 ? unreadChatCount : undefined,
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="message-circle" color={color} />
           ),

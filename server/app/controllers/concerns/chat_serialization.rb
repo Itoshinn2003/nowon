@@ -12,6 +12,7 @@ module ChatSerialization
       title: room.recruitment.purpose,
       participants: room.chat_participants.map { |participant| serialized_chat_participant(participant) },
       last_message: last_message ? serialized_chat_message(last_message) : nil,
+      unread_count: unread_count(room),
       created_at: room.created_at.iso8601,
       updated_at: room.updated_at.iso8601
     }
@@ -54,5 +55,16 @@ module ChatSerialization
     return nil unless photo&.image&.attached?
 
     rails_blob_url(photo.image, host: request.base_url)
+  end
+
+  def unread_count(room)
+    participant = room.participant_for(current_user)
+    last_read_message_id = participant&.last_read_message_id || 0
+
+    room
+      .chat_messages
+      .where.not(user_id: current_user.id)
+      .where("id > ?", last_read_message_id)
+      .count
   end
 end

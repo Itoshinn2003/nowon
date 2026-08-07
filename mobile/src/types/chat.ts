@@ -23,6 +23,7 @@ export type ChatRoom = {
   title: string;
   participants: ChatParticipant[];
   last_message: ChatMessage | null;
+  unread_count: number;
   created_at: string;
   updated_at: string;
 };

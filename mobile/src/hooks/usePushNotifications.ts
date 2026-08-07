@@ -6,6 +6,15 @@ import { Platform } from "react-native";
 
 import { registerPushToken } from "@/src/api/pushTokens";
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 type NotificationData = {
   type?: unknown;
   chat_room_id?: unknown;

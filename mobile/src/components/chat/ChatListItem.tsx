@@ -21,10 +21,11 @@ export function ChatListItem({
     (participant) => participant.user_id === currentUserId
   );
   const hasUnreadMessage = Boolean(
-    currentUserId &&
-      chat.last_message &&
-      chat.last_message.user_id !== currentUserId &&
-      chat.last_message.id > (currentParticipant?.last_read_message_id ?? 0)
+    chat.unread_count > 0 ||
+      (currentUserId &&
+        chat.last_message &&
+        chat.last_message.user_id !== currentUserId &&
+        chat.last_message.id > (currentParticipant?.last_read_message_id ?? 0))
   );
 
   return (

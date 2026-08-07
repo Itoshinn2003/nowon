@@ -2,6 +2,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   FlatList,
+  DeviceEventEmitter,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -127,6 +128,7 @@ export default function ChatDetailScreen() {
 
       try {
         await markChatRoomRead(chatRoomId, lastMessageId);
+        DeviceEventEmitter.emit("chatUnreadCountRefresh");
         if (currentUserIdRef.current) {
           updateParticipantRead(currentUserIdRef.current, lastMessageId);
         }
