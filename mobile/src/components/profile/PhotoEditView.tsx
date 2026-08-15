@@ -1,7 +1,6 @@
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Pressable,
   Text,
   View,
@@ -9,6 +8,7 @@ import {
 import { Button } from "react-native-paper";
 
 import { colors } from "@/src/constants/colors";
+import { DiagnosticProfileImage } from "@/src/components/profile/ProfileImageDiagnostics";
 import type {
   ProfilePhoto,
   UploadProfilePhotoParams,
@@ -71,7 +71,11 @@ export function PhotoEditView({
               style={{ borderColor: colors.border }}
             >
               {photo.url ? (
-                <Image source={{ uri: photo.url }} className="h-full w-full" />
+                <DiagnosticProfileImage
+                  className="h-full w-full"
+                  component="PhotoEditView"
+                  photo={photo}
+                />
               ) : null}
             </View>
             <Button

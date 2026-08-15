@@ -1,6 +1,8 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router } from "expo-router";
+import { useEffect, useState } from "react";
 import { Image, Text, useWindowDimensions, View } from "react-native";
+import type { ImageErrorEvent } from "react-native";
 import { Button } from "react-native-paper";
 
 import { colors } from "@/src/constants/colors";
@@ -9,6 +11,12 @@ import type {
   ProfilePhoto,
   UserProfile,
 } from "@/src/types/profile";
+import {
+  appendImageRetryParam,
+  logProfileImageError,
+  logProfileImageLoad,
+  PROFILE_IMAGE_RETRY_LIMIT,
+} from "@/src/utils/imageDiagnostics";
 
 const GENDER_LABELS: Record<ProfileGender, string> = {
   male: "男性",
@@ -155,11 +163,55 @@ function ProfilePhotoBlock({
   photo?: ProfilePhoto;
   nickname: string;
 }) {
-  if (photo?.url) {
+  const [hasImageError, setHasImageError] = useState(false);
+  const [retryToken, setRetryToken] = useState<number | null>(null);
+  const retryAttempt = retryToken ? 1 : 0;
+
+  useEffect(() => {
+    setHasImageError(false);
+    setRetryToken(null);
+  }, [photo?.url]);
+
+  if (photo?.url && !hasImageError) {
+    const imageUrl = retryToken
+      ? appendImageRetryParam(photo.url, retryToken)
+      : photo.url;
+
+    function handleError(event: ImageErrorEvent) {
+      const willRetry = retryAttempt < PROFILE_IMAGE_RETRY_LIMIT;
+
+      logProfileImageError({
+        context: {
+          attempt: retryAttempt,
+          component: "ProfilePhotoBlock",
+          photoId: photo?.id,
+          url: photo?.url ?? "",
+        },
+        event,
+        willRetry,
+      });
+
+      if (willRetry) {
+        setRetryToken(Date.now());
+        return;
+      }
+
+      setHasImageError(true);
+    }
+
     return (
       <Image
-        source={{ uri: photo.url }}
+        source={{ uri: imageUrl }}
         className="h-32 w-32 rounded-full"
+        onError={handleError}
+        onLoad={() =>
+          logProfileImageLoad({
+            attempt: retryAttempt,
+            component: "ProfilePhotoBlock",
+            photoId: photo.id,
+            url: photo.url ?? "",
+          })
+        }
         resizeMode="cover"
       />
     );
@@ -178,15 +230,60 @@ function ProfilePhotoBlock({
 }
 
 function PhotoTile({ photo, size }: { photo: ProfilePhoto; size: number }) {
+  const [hasImageError, setHasImageError] = useState(false);
+  const [retryToken, setRetryToken] = useState<number | null>(null);
+  const retryAttempt = retryToken ? 1 : 0;
+
+  useEffect(() => {
+    setHasImageError(false);
+    setRetryToken(null);
+  }, [photo.url]);
+
+  function handleError(event: ImageErrorEvent) {
+    const willRetry = retryAttempt < PROFILE_IMAGE_RETRY_LIMIT;
+
+    logProfileImageError({
+      context: {
+        attempt: retryAttempt,
+        component: "ProfilePhotoTile",
+        photoId: photo.id,
+        url: photo.url ?? "",
+      },
+      event,
+      willRetry,
+    });
+
+    if (willRetry) {
+      setRetryToken(Date.now());
+      return;
+    }
+
+    setHasImageError(true);
+  }
+
+  const imageUrl =
+    photo.url && retryToken
+      ? appendImageRetryParam(photo.url, retryToken)
+      : photo.url;
+
   return (
     <View
       className="overflow-hidden bg-gray-100"
       style={{ height: size, width: size }}
     >
-      {photo.url ? (
+      {imageUrl && !hasImageError ? (
         <Image
-          source={{ uri: photo.url }}
+          source={{ uri: imageUrl }}
           className="h-full w-full"
+          onError={handleError}
+          onLoad={() =>
+            logProfileImageLoad({
+              attempt: retryAttempt,
+              component: "ProfilePhotoTile",
+              photoId: photo.id,
+              url: photo.url ?? "",
+            })
+          }
           resizeMode="cover"
         />
       ) : (

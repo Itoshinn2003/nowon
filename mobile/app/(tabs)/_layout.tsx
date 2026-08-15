@@ -9,6 +9,10 @@ import { getChatRooms } from "@/src/api/chat";
 import { subscribeToChatNotifications } from "@/src/api/chatNotificationsCable";
 import { colors } from "@/src/constants/colors";
 import { useProfile } from "@/src/hooks/useProfile";
+import {
+  logProfileImageError,
+  logProfileImageLoad,
+} from "@/src/utils/imageDiagnostics";
 
 const TAB_BAR_BASE_HEIGHT = 52;
 const TAB_BAR_BOTTOM_INSET_REDUCTION = 20;
@@ -34,9 +38,15 @@ function ProfileTabIcon({
   focused: boolean;
 }) {
   const { profile } = useProfile();
-  const photoUrl = profile?.photos[0]?.url;
+  const photo = profile?.photos[0];
+  const photoUrl = photo?.url;
+  const [hasImageError, setHasImageError] = useState(false);
 
-  if (!photoUrl) {
+  useEffect(() => {
+    setHasImageError(false);
+  }, [photoUrl]);
+
+  if (!photoUrl || hasImageError) {
     return <TabBarIcon name="user" color={color} />;
   }
 
@@ -55,6 +65,27 @@ function ProfileTabIcon({
       >
         <View style={{ borderRadius: 12, flex: 1, overflow: "hidden" }}>
           <Image
+            onError={(event) => {
+              logProfileImageError({
+                context: {
+                  attempt: 0,
+                  component: "ProfileTabIcon",
+                  photoId: photo?.id,
+                  url: photoUrl,
+                },
+                event,
+                willRetry: false,
+              });
+              setHasImageError(true);
+            }}
+            onLoad={() =>
+              logProfileImageLoad({
+                attempt: 0,
+                component: "ProfileTabIcon",
+                photoId: photo?.id,
+                url: photoUrl,
+              })
+            }
             source={{ uri: photoUrl }}
             style={{ height: "100%", width: "100%" }}
           />
