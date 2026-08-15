@@ -107,6 +107,10 @@ export function RecruitmentApplicationCard({
 
       <View className="mt-4 flex-row items-center gap-2">
         <InfoPill icon="users" text={recruitmentPeopleLabel(recruitment)} />
+        <InfoPill
+          icon="user-plus"
+          text={`応募 ${recruitment.active_application_count}/${recruitment.application_limit}`}
+        />
         {disabledReason && shouldShowApplyForm ? (
           <Text
             className="min-w-0 flex-1 text-xs font-bold text-gray-500"

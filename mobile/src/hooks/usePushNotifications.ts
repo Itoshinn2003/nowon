@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { Platform } from "react-native";
 
 import { registerPushToken } from "@/src/api/pushTokens";
+import { saveStoredPushToken } from "@/src/stores/pushTokenStorage";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -116,6 +117,7 @@ async function registerForPushNotifications() {
     token: token.data,
     platform: notificationPlatform(),
   });
+  await saveStoredPushToken(token.data);
 }
 
 function notificationProjectId() {

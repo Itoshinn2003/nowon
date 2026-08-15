@@ -1,5 +1,6 @@
 class UserProfile < ApplicationRecord
   GENDERS = %w[male female other no_answer].freeze
+  MINIMUM_AGE = 18
 
   belongs_to :user
   has_many :profile_photos, dependent: :destroy
@@ -11,6 +12,7 @@ class UserProfile < ApplicationRecord
   validates :bio, length: { maximum: 160 }, allow_blank: true
 
   validate :birth_date_is_not_in_future
+  validate :birth_date_meets_minimum_age
 
   def age(reference_date = Time.zone.today)
     return if birth_date.blank?
@@ -28,5 +30,11 @@ class UserProfile < ApplicationRecord
     return if birth_date.blank? || birth_date <= Time.zone.today
 
     errors.add(:birth_date, :future)
+  end
+
+  def birth_date_meets_minimum_age
+    return if birth_date.blank? || birth_date <= Time.zone.today.advance(years: -MINIMUM_AGE)
+
+    errors.add(:birth_date, "は#{MINIMUM_AGE}歳以上で登録してください")
   end
 end

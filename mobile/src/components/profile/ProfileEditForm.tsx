@@ -38,6 +38,7 @@ const GENDER_BUTTONS: Array<{ value: ProfileGender; label: string }> = [
   { value: "other", label: "その他" },
   { value: "no_answer", label: "未回答" },
 ];
+const MINIMUM_AGE = 18;
 
 export function ProfileEditForm({
   profile,
@@ -64,7 +65,7 @@ export function ProfileEditForm({
     () =>
       formData.nickname.trim().length > 0 &&
       formData.nickname.trim().length <= 12 &&
-      (!showBirthDate || formData.birthDate <= new Date()) &&
+      (!showBirthDate || formData.birthDate <= latestEligibleBirthDate()) &&
       (!showGender || genderOptions.includes(formData.gender)) &&
       canSubmitExtra &&
       !isSubmitting,
@@ -125,6 +126,9 @@ export function ProfileEditForm({
       {showBirthDate ? (
         <View className="gap-2">
           <FieldLabel label="生年月日" required />
+          <Text className="text-xs text-gray-500">
+            18歳以上の方のみ利用できます
+          </Text>
           <Pressable
             className="rounded-lg border bg-white px-4 py-3"
             style={{ borderColor: colors.inputBorder }}
@@ -144,7 +148,7 @@ export function ProfileEditForm({
               locale="ja-JP"
               textColor="#111827"
               themeVariant="light"
-              maximumDate={new Date()}
+              maximumDate={latestEligibleBirthDate()}
               minimumDate={new Date(1900, 0, 1)}
               onChange={handleDateChange}
             />
@@ -229,4 +233,13 @@ function formatJapaneseDate(date: Date) {
     month: "long",
     day: "numeric",
   });
+}
+
+function latestEligibleBirthDate() {
+  const today = new Date();
+  return new Date(
+    today.getFullYear() - MINIMUM_AGE,
+    today.getMonth(),
+    today.getDate()
+  );
 }

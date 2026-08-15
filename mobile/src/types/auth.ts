@@ -9,6 +9,15 @@ export type SignInFormState = {
   password: string;
 };
 
+export type AppleFullName = {
+  familyName?: string | null;
+  givenName?: string | null;
+  middleName?: string | null;
+  namePrefix?: string | null;
+  nameSuffix?: string | null;
+  nickname?: string | null;
+};
+
 export type VisibleValidationError = {
   email: boolean;
   password: boolean;

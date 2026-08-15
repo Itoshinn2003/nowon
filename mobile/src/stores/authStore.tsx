@@ -13,6 +13,11 @@ import {
   getAuthHeaders,
   saveAuthHeaders,
 } from "@/src/stores/authStorage";
+import { unregisterPushToken } from "@/src/api/pushTokens";
+import {
+  clearStoredPushToken,
+  getStoredPushToken,
+} from "@/src/stores/pushTokenStorage";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -55,6 +60,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setStatus("authenticated");
       },
       async clearSession() {
+        const pushToken = await getStoredPushToken();
+
+        if (pushToken) {
+          await unregisterPushToken(pushToken).catch(() => undefined);
+          await clearStoredPushToken();
+        }
+
         await clearAuthHeaders();
         setStatus("unauthenticated");
       },

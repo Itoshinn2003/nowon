@@ -2,10 +2,10 @@ import * as Google from "expo-auth-session/providers/google";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Image, Platform } from "react-native";
-import { Button } from "react-native-paper";
 import * as WebBrowser from "expo-web-browser";
 
 import { signInWithGoogle } from "@/src/api/auth";
+import { SocialContinueButton } from "@/src/components/auth/SocialContinueButton";
 import { env } from "@/src/config/env";
 import { useAuthStore } from "@/src/stores/authStore";
 
@@ -81,8 +81,7 @@ export function GoogleContinueButton() {
   }
 
   return (
-    <Button
-      mode="outlined"
+    <SocialContinueButton
       icon={({ size }) => (
         <Image
           source={require("@/assets/images/google-g.png")}
@@ -91,13 +90,10 @@ export function GoogleContinueButton() {
       )}
       loading={isSubmitting}
       disabled={isSubmitting}
-      textColor="#1F2937"
-      style={{ borderColor: "#D1D5DB" }}
-      theme={{ colors: { primary: "#1F2937" } }}
       onPress={handlePress}
     >
       Googleで続ける
-    </Button>
+    </SocialContinueButton>
   );
 }
 

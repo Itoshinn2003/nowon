@@ -98,9 +98,7 @@ module Auth
 
       yield
     ensure
-      GoogleIdTokenVerifier.define_singleton_method(:verify) do |id_token|
-        original_verify.call(id_token)
-      end
+      GoogleIdTokenVerifier.define_singleton_method(:verify, original_verify)
     end
 
     def assert_auth_headers_present

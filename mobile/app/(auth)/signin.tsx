@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { View } from "react-native";
 
 import { signIn } from "@/src/api/auth";
+import { AppleContinueButton } from "@/src/components/auth/AppleContinueButton";
 import { GoogleContinueButton } from "@/src/components/auth/GoogleContinueButton";
 import { SignInForm } from "@/src/components/auth/SignInForm";
 import { AuthSwitchLink } from "@/src/components/ui/AuthSwitchLink";
@@ -45,6 +46,7 @@ export default function SignInScreen() {
 
         <View className="gap-4">
           <DividerWithText />
+          <AppleContinueButton />
           <GoogleContinueButton />
         </View>
 
@@ -59,7 +61,15 @@ export default function SignInScreen() {
 }
 
 function getSignInErrorMessages(error: unknown) {
+  if (error instanceof Error && !axios.isAxiosError(error)) {
+    return `ログインに失敗しました: ${error.message}`;
+  }
+
   if (axios.isAxiosError(error)) {
+    if (!error.response) {
+      return "ログインに失敗しました: サーバーに接続できません";
+    }
+
     return (
       (error.response?.data as AuthErrorResponse | undefined)?.errors ??
       "ログインに失敗しました。時間をおいて再度お試しください。"

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { signUp } from "@/src/api/auth";
+import { AppleContinueButton } from "@/src/components/auth/AppleContinueButton";
 import { GoogleContinueButton } from "@/src/components/auth/GoogleContinueButton";
 import { SignUpForm } from "@/src/components/auth/SignUpForm";
 import { AuthSwitchLink } from "@/src/components/ui/AuthSwitchLink";
@@ -67,6 +68,7 @@ export default function SignUpScreen() {
 
         <View className="gap-4">
           <DividerWithText />
+          <AppleContinueButton />
           <GoogleContinueButton />
         </View>
 

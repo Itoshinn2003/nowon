@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from "axios";
 
 import { env } from "@/src/config/env";
 import type {
+  AppleFullName,
   AuthHeaders,
   SignInFormState,
   SignInResponse,
@@ -39,6 +40,24 @@ export async function signInWithGoogle(idToken: string) {
     `${env.apiBaseUrl}/auth/google`,
     {
       id_token: idToken,
+    }
+  );
+
+  return {
+    data: response.data,
+    authHeaders: responseAuthHeaders(response),
+  };
+}
+
+export async function signInWithApple(params: {
+  identityToken: string;
+  fullName?: AppleFullName | null;
+}) {
+  const response = await axios.post<SignInResponse>(
+    `${env.apiBaseUrl}/auth/apple`,
+    {
+      identity_token: params.identityToken,
+      full_name: params.fullName,
     }
   );
 

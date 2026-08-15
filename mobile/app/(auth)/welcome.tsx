@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { Image, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
+import { AppleContinueButton } from "@/src/components/auth/AppleContinueButton";
 import { GoogleContinueButton } from "@/src/components/auth/GoogleContinueButton";
 import { colors } from "@/src/constants/colors";
 import { AuthSwitchLink } from "@/src/components/ui/AuthSwitchLink";
@@ -31,6 +32,7 @@ export default function WelcomeScreen() {
           >
             メールで続ける
           </Button>
+          <AppleContinueButton />
           <GoogleContinueButton />
         </View>
 
