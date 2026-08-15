@@ -139,7 +139,12 @@ export default function ProfileOnboardingScreen() {
             submitLabel="始める"
             extraContent={
               <View className="gap-3">
-                <FieldLabel label="プロフィール画像" required />
+                <View className="gap-1">
+                  <FieldLabel label="プロフィール画像" required />
+                  <Text className="text-xs leading-5 text-gray-500">
+                    安心してつながれるよう、本人の雰囲気や顔がわかる写真がおすすめです。
+                  </Text>
+                </View>
                 <Pressable
                   className="aspect-square w-36 items-center justify-center overflow-hidden rounded-lg border border-dashed bg-gray-50"
                   style={{
