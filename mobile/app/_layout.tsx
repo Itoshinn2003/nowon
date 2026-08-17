@@ -92,17 +92,18 @@ function OnboardingNavigation() {
   const segments = useSegments();
   const { isLoading, errorMessage, onboardingCompletedAt } = useProfile();
   const inOnboardingGroup = segments[0] === "onboarding";
-  const needsOnboarding = onboardingCompletedAt === null;
+  const hasProfileLoadError = Boolean(errorMessage);
+  const needsOnboarding = !hasProfileLoadError && onboardingCompletedAt === null;
 
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  if (!errorMessage && needsOnboarding && !inOnboardingGroup) {
+  if (needsOnboarding && !inOnboardingGroup) {
     return <Redirect href="/onboarding/profile" />;
   }
 
-  if (!errorMessage && !needsOnboarding && inOnboardingGroup) {
+  if (!hasProfileLoadError && !needsOnboarding && inOnboardingGroup) {
     return <Redirect href="/" />;
   }
 

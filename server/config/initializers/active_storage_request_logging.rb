@@ -42,7 +42,7 @@ class ActiveStorageRequestLogging
         method: env["REQUEST_METHOD"],
         path: full_path(env),
         status: status,
-        location: header_value(headers, "Location"),
+        location: sanitized_location(header_value(headers, "Location")),
         content_type: header_value(headers, "Content-Type"),
         cache_control: header_value(headers, "Cache-Control"),
         duration_ms: duration_ms(started_at),
@@ -69,6 +69,12 @@ class ActiveStorageRequestLogging
   def duration_ms(started_at)
     ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).round(1)
   end
+
+  def sanitized_location(location)
+    return nil if location.blank?
+
+    location.to_s.sub(/\?.*\z/, "?[FILTERED]")
+  end
 end
 
-Rails.application.config.middleware.use ActiveStorageRequestLogging
+Rails.application.config.middleware.use ActiveStorageRequestLogging if ENV["ACTIVE_STORAGE_REQUEST_LOGGING"] == "true"

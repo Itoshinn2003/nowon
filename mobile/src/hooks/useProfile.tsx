@@ -63,7 +63,6 @@ function useProvideProfile() {
     if (!hasLoadedProfileRef.current) {
       setIsLoading(true);
     }
-
     setErrorMessage("");
 
     try {
