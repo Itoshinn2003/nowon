@@ -58,6 +58,8 @@ module MemoryDiagnostics
   def start!
     return unless enabled?
 
+    $stdout.sync = true
+    log_enabled_once!
     install_fork_hook!
     subscribe_to_active_job! unless @active_job_subscribed
     subscribe_to_requests! if request_logging_enabled? && !@requests_subscribed
@@ -74,7 +76,7 @@ module MemoryDiagnostics
 
     start!
   rescue => error
-    Rails.logger.warn("[memory_diagnostics:error] #{JSON.generate(error_payload(error, event: "after_fork"))}") if defined?(Rails)
+    log_error(error, event: "after_fork")
   end
 
   def install_fork_hook!
@@ -85,12 +87,25 @@ module MemoryDiagnostics
     @fork_hook_installed = true
   end
 
+  def log_enabled_once!
+    return if @enabled_logged_pid == Process.pid
+
+    @enabled_logged_pid = Process.pid
+    log_line(
+      "[MemoryDiagnostics] enabled pid=#{Process.pid} ppid=#{Process.ppid} " \
+        "interval_seconds=#{interval_seconds} proc_available=#{Dir.exist?(PROC_PATH)} " \
+        "request_logging=#{request_logging_enabled?}"
+    )
+  end
+
   def sampler_thread_alive?(thread, pid)
     pid == Process.pid && thread&.alive?
   end
 
   def start_self_sampler!
     @self_sampler_pid = Process.pid
+    log_line("[MemoryDiagnostics] self sampler starting pid=#{Process.pid} ppid=#{Process.ppid}")
+
     @self_sampler_thread = Thread.new do
       Thread.current.name = "memory_diagnostics_self" if Thread.current.respond_to?(:name=)
 
@@ -101,19 +116,28 @@ module MemoryDiagnostics
         log_self_snapshot(event: "periodic")
       end
     rescue => error
-      Rails.logger.warn("[memory_diagnostics:error] #{JSON.generate(error_payload(error, event: "self_sampler"))}")
+      log_error(error, event: "self_sampler")
     end
   end
 
   def start_process_sampler_if_lock_owner!
-    return unless Dir.exist?(PROC_PATH)
+    unless Dir.exist?(PROC_PATH)
+      log_line("[MemoryDiagnostics] process sampler unavailable pid=#{Process.pid} reason=proc_not_found")
+      return
+    end
 
     lock_file = File.open(LOCK_PATH, File::RDWR | File::CREAT, 0o644)
-    return unless lock_file.flock(File::LOCK_EX | File::LOCK_NB)
+    unless lock_file.flock(File::LOCK_EX | File::LOCK_NB)
+      log_line("[MemoryDiagnostics] process sampler skipped pid=#{Process.pid} reason=lock_held")
+      lock_file.close
+      return
+    end
 
     @process_sampler_lock_file = lock_file
 
     @process_sampler_pid = Process.pid
+    log_line("[MemoryDiagnostics] process sampler starting pid=#{Process.pid} ppid=#{Process.ppid}")
+
     @process_sampler_thread = Thread.new do
       Thread.current.name = "memory_diagnostics_processes" if Thread.current.respond_to?(:name=)
 
@@ -124,10 +148,10 @@ module MemoryDiagnostics
         log_process_snapshot
       end
     rescue => error
-      Rails.logger.warn("[memory_diagnostics:error] #{JSON.generate(error_payload(error, event: "process_sampler"))}")
+      log_error(error, event: "process_sampler")
     end
   rescue => error
-    Rails.logger.warn("[memory_diagnostics:error] #{JSON.generate(error_payload(error, event: "process_sampler_lock"))}")
+    log_error(error, event: "process_sampler_lock")
   end
 
   def subscribe_to_active_job!
@@ -180,7 +204,7 @@ module MemoryDiagnostics
       request: request
     }.compact
 
-    Rails.logger.info("[memory_diagnostics:self] #{JSON.generate(payload)}")
+    log_line("[memory_diagnostics:self] #{JSON.generate(payload)}")
   end
 
   def log_process_snapshot
@@ -190,7 +214,7 @@ module MemoryDiagnostics
       processes: ruby_processes
     }
 
-    Rails.logger.info("[memory_diagnostics:processes] #{JSON.generate(payload)}")
+    log_line("[memory_diagnostics:processes] #{JSON.generate(payload)}")
   end
 
   def ruby_processes
@@ -345,6 +369,16 @@ module MemoryDiagnostics
       error_class: error.class.name,
       error_message: error.message
     }
+  end
+
+  def log_error(error, event:)
+    log_line("[memory_diagnostics:error] #{JSON.generate(error_payload(error, event: event))}")
+  end
+
+  def log_line(line)
+    $stdout.puts(line)
+  rescue IOError
+    nil
   end
 
   def close_inherited_process_sampler_lock!
