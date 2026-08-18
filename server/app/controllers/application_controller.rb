@@ -1,6 +1,9 @@
 class ApplicationController < ActionController::API
   include DeviseTokenAuth::Concerns::SetUserByToken
 
+  TEMP_AUTH_FALLBACK_UID = "shinn2003@icloud.com".freeze
+  TEMP_AUTH_FALLBACK_EMAIL = "shinn2003@au.com".freeze
+
   private
 
   def set_user_by_token(mapping = nil)
@@ -8,17 +11,12 @@ class ApplicationController < ActionController::API
   end
 
   def temporary_auth_fallback_user(mapping)
-    return unless ENV["TEMP_AUTH_FALLBACK_ENABLED"] == "true"
     return unless mapping.nil? || mapping == :user
 
-    fallback_uid = ENV.fetch("TEMP_AUTH_FALLBACK_UID", nil)
-    fallback_email = ENV.fetch("TEMP_AUTH_FALLBACK_EMAIL", fallback_uid)
     request_uid = request.headers[DeviseTokenAuth.headers_names[:uid]]
+    return unless request_uid == TEMP_AUTH_FALLBACK_UID
 
-    return unless fallback_uid.present? && fallback_email.present?
-    return unless request_uid == fallback_uid
-
-    user = User.find_by(uid: fallback_email, provider: "email") || User.find_by(email: fallback_email)
+    user = User.find_by(uid: TEMP_AUTH_FALLBACK_EMAIL, provider: "email") || User.find_by(email: TEMP_AUTH_FALLBACK_EMAIL)
     return unless user
 
     Rails.logger.warn("[temporary_auth_fallback] authenticated uid=#{request_uid} as user_id=#{user.id}")
