@@ -6,7 +6,7 @@ import { router } from "expo-router";
 import { BackIconButton } from "@/src/components/ui/BackIconButton";
 import { colors } from "@/src/constants/colors";
 
-const CONTACT_EMAIL = "support@nowon-test.com";
+const CONTACT_EMAIL = "nowon.support@gmail.com";
 
 export default function ContactScreen() {
   function openMailApp() {
