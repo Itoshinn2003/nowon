@@ -1,9 +1,10 @@
 import { SettingsContentScreen } from "@/src/components/settings/SettingsContentScreen";
+import { env } from "@/src/config/env";
 
 const SECTIONS = [
   {
     title: "取得する情報",
-    body: "NowOnでは、アカウント作成・ログインのためのメールアドレス、プロフィール情報、プロフィール画像、募集内容、応募内容、チャットメッセージ、現在地周辺の募集表示に必要な位置情報を取得します。",
+    body: "NowOn.では、アカウント作成・ログインのためのメールアドレス、プロフィール情報、プロフィール画像、募集内容、応募内容、チャットメッセージ、現在地周辺の募集表示に必要な位置情報を取得します。",
   },
   {
     title: "利用目的",
@@ -28,6 +29,8 @@ const SECTIONS = [
   {
     title: "お問い合わせ",
     body: "プライバシーに関する問い合わせは、アプリ内の「お問い合わせ」から連絡してください。",
+    linkLabel: "詳しくはこちら",
+    linkUrl: `${env.apiBaseUrl}/privacy`,
   },
 ];
 

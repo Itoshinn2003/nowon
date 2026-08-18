@@ -1,5 +1,5 @@
 class PublicPagesController < ActionController::API
-  SERVICE_NAME = "NowOn".freeze
+  SERVICE_NAME = "NowOn.".freeze
   DEFAULT_SUPPORT_EMAIL = "nowon.support@gmail.com".freeze
   POLICY_DATE = "2026年8月18日".freeze
 
@@ -14,9 +14,7 @@ class PublicPagesController < ActionController::API
   private
 
   def support_email
-    ENV.fetch("SUPPORT_EMAIL") do
-      ENV.fetch("MAILER_FROM", DEFAULT_SUPPORT_EMAIL)
-    end
+    ENV.fetch("SUPPORT_EMAIL", DEFAULT_SUPPORT_EMAIL)
   end
 
   def escaped_support_email
@@ -39,7 +37,7 @@ class PublicPagesController < ActionController::API
         <h2>お問い合わせ先</h2>
         <p>不具合、利用方法、通報、安全上の問題、アカウントに関するお問い合わせを受け付けています。</p>
         <p class="contact">
-          <a href="#{mailto_href(subject: "NowOn お問い合わせ")}">#{escaped_support_email}</a>
+          <a href="#{mailto_href(subject: "NowOn. お問い合わせ")}">#{escaped_support_email}</a>
         </p>
       </section>
 
@@ -138,7 +136,7 @@ class PublicPagesController < ActionController::API
       <section>
         <h2>7. アカウント削除とデータ削除</h2>
         <p>利用者は、アプリ内の設定画面からアカウント削除を行えます。アカウント削除により、プロフィール、画像、募集、応募、チャットメッセージ、Push通知トークンなど、アカウントに関連するデータは削除されます。ただし、法令上またはサービス運営上必要な情報は、必要な期間保存する場合があります。</p>
-        <p>アプリから削除できない場合は、<a href="#{mailto_href(subject: "NowOn アカウント削除依頼")}">#{escaped_support_email}</a> までお問い合わせください。</p>
+        <p>アプリから削除できない場合は、<a href="#{mailto_href(subject: "NowOn. アカウント削除依頼")}">#{escaped_support_email}</a> までお問い合わせください。</p>
       </section>
 
       <section>
@@ -154,7 +152,7 @@ class PublicPagesController < ActionController::API
       <section>
         <h2>10. お問い合わせ</h2>
         <p>本プライバシーポリシーまたは個人情報の取り扱いに関するお問い合わせは、以下のメールアドレスまでご連絡ください。</p>
-        <p class="contact"><a href="#{mailto_href(subject: "NowOn プライバシーに関するお問い合わせ")}">#{escaped_support_email}</a></p>
+        <p class="contact"><a href="#{mailto_href(subject: "NowOn. プライバシーに関するお問い合わせ")}">#{escaped_support_email}</a></p>
       </section>
 
       <section>
@@ -181,7 +179,7 @@ class PublicPagesController < ActionController::API
           <style>
             :root {
               color-scheme: light;
-              --background: #f7f7f4;
+              --background: #ffffff;
               --surface: #ffffff;
               --text: #171717;
               --muted: #5f6368;

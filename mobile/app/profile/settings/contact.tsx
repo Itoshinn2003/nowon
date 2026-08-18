@@ -4,13 +4,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
 import { BackIconButton } from "@/src/components/ui/BackIconButton";
+import { env } from "@/src/config/env";
 import { colors } from "@/src/constants/colors";
 
 const CONTACT_EMAIL = "nowon.support@gmail.com";
+const SUPPORT_URL = `${env.apiBaseUrl}/support`;
 
 export default function ContactScreen() {
   function openMailApp() {
-    const subject = encodeURIComponent("NowOn お問い合わせ");
+    const subject = encodeURIComponent("NowOn. お問い合わせ");
     const body = encodeURIComponent(
       "お問い合わせ内容:\n\n\n登録メールアドレス:\n"
     );
@@ -31,6 +33,12 @@ export default function ContactScreen() {
       <View className="gap-5 px-4 pt-4">
         <Text className="text-sm leading-6 text-gray-700">
           不具合、通報、アカウント、プライバシーに関するお問い合わせは以下のメールアドレスまでご連絡ください。
+        </Text>
+        <Text
+          className="text-sm font-bold text-gray-950 underline"
+          onPress={() => Linking.openURL(SUPPORT_URL)}
+        >
+          詳しくはこちら
         </Text>
         <View
           className="rounded-lg border bg-white p-4"

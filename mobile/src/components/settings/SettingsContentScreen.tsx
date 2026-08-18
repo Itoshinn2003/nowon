@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { ScrollView, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackIconButton } from "@/src/components/ui/BackIconButton";
@@ -8,6 +8,8 @@ import { colors } from "@/src/constants/colors";
 type Section = {
   title: string;
   body: string;
+  linkLabel?: string;
+  linkUrl?: string;
 };
 
 type Props = {
@@ -39,6 +41,13 @@ export function SettingsContentScreen({ title, sections }: Props) {
             <Text className="text-sm leading-6 text-gray-700">
               {section.body}
             </Text>
+            {section.linkLabel && section.linkUrl ? (
+              <Pressable onPress={() => Linking.openURL(section.linkUrl!)}>
+                <Text className="text-sm font-bold text-gray-950 underline">
+                  {section.linkLabel}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         ))}
       </ScrollView>
