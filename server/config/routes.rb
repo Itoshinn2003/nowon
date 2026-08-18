@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   mount ActionCable.server => "/cable"
 
+  get "support", to: "public_pages#support"
+  get "privacy", to: "public_pages#privacy"
+
   post "auth/google", to: "auth/google_authentications#create"
   post "auth/apple", to: "auth/apple_authentications#create"
 
