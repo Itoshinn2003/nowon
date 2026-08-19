@@ -10,7 +10,7 @@ module ChatSerialization
       id: room.id,
       recruitment_id: room.recruitment_id,
       title: room.recruitment.purpose,
-      participants: room.chat_participants.map { |participant| serialized_chat_participant(participant) },
+      participants: room.chat_participants.reject { |participant| blocked_relation?(participant.user_id) }.map { |participant| serialized_chat_participant(participant) },
       last_message: last_message ? serialized_chat_message(last_message) : nil,
       unread_count: unread_count(room),
       created_at: room.created_at.iso8601,

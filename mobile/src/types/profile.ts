@@ -31,6 +31,7 @@ export type ProfileFormState = {
 };
 
 export type ProfileResponse = {
+  current_user_id: number;
   onboarding_completed_at: string | null;
   profile: {
     id: number;

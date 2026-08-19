@@ -20,6 +20,9 @@ Rails.application.routes.draw do
   resources :push_tokens, only: %i[ create ]
   delete "push_tokens", to: "push_tokens#destroy"
   resources :profiles, only: %i[ show ], controller: "profiles"
+  resources :reports, only: %i[ create ]
+  resources :blocks, only: %i[ create ]
+  delete "blocks/:blocked_user_id", to: "blocks#destroy"
 
   resources :recruitment_categories, only: %i[ index ]
   resources :recruitments, only: %i[ index show create ] do

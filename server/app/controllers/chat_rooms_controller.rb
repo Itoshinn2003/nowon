@@ -6,6 +6,7 @@ class ChatRoomsController < ApplicationController
   def index
     rooms = ChatRoom
             .for_user(current_user)
+            .then { |scope| exclude_blocked_rooms(scope) }
             .includes(
               :recruitment,
               chat_messages: :user,
@@ -45,13 +46,31 @@ class ChatRoomsController < ApplicationController
   private
 
   def current_chat_room
-    ChatRoom
-      .for_user(current_user)
-      .includes(
-        :recruitment,
-        chat_messages: :user,
-        chat_participants: { user: { user_profile: { profile_photos: { image_attachment: :blob } } } }
-      )
-      .find(params[:id])
+    room = ChatRoom
+           .for_user(current_user)
+           .includes(
+             :recruitment,
+             chat_messages: :user,
+             chat_participants: { user: { user_profile: { profile_photos: { image_attachment: :blob } } } }
+           )
+           .find(params[:id])
+
+    raise ActiveRecord::RecordNotFound if blocked_room?(room)
+
+    room
+  end
+
+  def exclude_blocked_rooms(scope)
+    return scope if blocked_user_ids.empty?
+
+    scope.where.not(
+      id: ChatParticipant.where(user_id: blocked_user_ids).select(:chat_room_id)
+    )
+  end
+
+  def blocked_room?(room)
+    return false if blocked_user_ids.empty?
+
+    room.chat_participants.any? { |participant| blocked_user_ids.include?(participant.user_id) }
   end
 end

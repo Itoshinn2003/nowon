@@ -7,6 +7,11 @@ class ProfilesController < ApplicationController
              .includes(user_profile: { profile_photos: { image_attachment: :blob } })
              .find(params[:id])
 
+      if blocked_relation?(user.id)
+        head :not_found
+        return
+      end
+
       render json: profile_response(
         user.user_profile,
         include_all_photos: user.id == current_user.id
@@ -76,6 +81,7 @@ class ProfilesController < ApplicationController
   def profile_response(profile, include_all_photos: true)
     {
       profile: serialized_profile(profile, include_all_photos: include_all_photos),
+      current_user_id: current_user.id,
       onboarding_completed_at: current_user.onboarding_completed_at&.iso8601
     }
   end
