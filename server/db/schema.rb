@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_06_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_19_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_000000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "blocks", force: :cascade do |t|
+    t.bigint "blocked_user_id", null: false
+    t.bigint "blocker_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["blocked_user_id"], name: "index_blocks_on_blocked_user_id"
+    t.index ["blocker_id", "blocked_user_id"], name: "index_blocks_on_blocker_id_and_blocked_user_id", unique: true
+    t.index ["blocker_id"], name: "index_blocks_on_blocker_id"
   end
 
   create_table "chat_messages", force: :cascade do |t|
@@ -159,6 +169,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_000000) do
     t.check_constraint "recruiting_people_min <= recruiting_people_max", name: "chk_recruitments_people_min_lte_max"
     t.check_constraint "recruitment_type = ANY (ARRAY[0, 1])", name: "chk_recruitments_recruitment_type"
     t.check_constraint "status = ANY (ARRAY[0, 1, 2, 3])", name: "chk_recruitments_status"
+  end
+
+  create_table "reports", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "details"
+    t.string "reason", null: false
+    t.bigint "reported_user_id", null: false
+    t.bigint "reporter_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["reported_user_id", "status"], name: "index_reports_on_reported_user_id_and_status"
+    t.index ["reported_user_id"], name: "index_reports_on_reported_user_id"
+    t.index ["reporter_id", "reported_user_id"], name: "index_reports_on_reporter_id_and_reported_user_id"
+    t.index ["reporter_id"], name: "index_reports_on_reporter_id"
   end
 
   create_table "solid_cable_messages", force: :cascade do |t|
@@ -345,6 +369,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_000000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "blocks", "users", column: "blocked_user_id"
+  add_foreign_key "blocks", "users", column: "blocker_id"
   add_foreign_key "chat_messages", "chat_rooms"
   add_foreign_key "chat_messages", "users"
   add_foreign_key "chat_participants", "chat_messages", column: "last_read_message_id"
@@ -357,6 +383,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_06_000000) do
   add_foreign_key "recruitment_applications", "users"
   add_foreign_key "recruitments", "recruitment_categories"
   add_foreign_key "recruitments", "users"
+  add_foreign_key "reports", "users", column: "reported_user_id"
+  add_foreign_key "reports", "users", column: "reporter_id"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

@@ -3,6 +3,12 @@ class RecruitmentApplicationsController < ApplicationController
 
   def create
     recruitment = Recruitment.find(params[:recruitment_id])
+
+    if blocked_relation?(recruitment.user_id)
+      render_blocked_error
+      return
+    end
+
     application = recruitment
                   .recruitment_applications
                   .build(application_params.merge(user: current_user))
@@ -19,6 +25,7 @@ class RecruitmentApplicationsController < ApplicationController
     recruitment = current_user.recruitments.find(params[:recruitment_id])
     applications = recruitment
                    .recruitment_applications
+                   .then { |scope| exclude_blocked_applicants(scope) }
                    .includes(user: :user_profile)
                    .order(created_at: :desc)
 
@@ -30,7 +37,7 @@ class RecruitmentApplicationsController < ApplicationController
   def mine
     applications = current_user
                    .recruitment_applications
-                   .includes(recruitment: [:recruitment_category, { user: { user_profile: { profile_photos: { image_attachment: :blob } } } }])
+                   .includes(recruitment: [ :recruitment_category, { user: { user_profile: { profile_photos: { image_attachment: :blob } } } } ])
                    .order(created_at: :desc)
 
     render json: {
@@ -58,6 +65,11 @@ class RecruitmentApplicationsController < ApplicationController
   def accept
     application = owned_application
     recruitment = application.recruitment
+
+    if blocked_relation?(application.user_id)
+      render_blocked_error
+      return
+    end
 
     unless recruitment.active? && recruitment.expires_at.future?
       render json: {
@@ -113,6 +125,12 @@ class RecruitmentApplicationsController < ApplicationController
 
   def application_params
     params.fetch(:application, params).permit(:message)
+  end
+
+  def exclude_blocked_applicants(scope)
+    return scope if blocked_user_ids.empty?
+
+    scope.where.not(user_id: blocked_user_ids)
   end
 
   def serialized_application(application)

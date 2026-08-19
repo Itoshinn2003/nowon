@@ -33,10 +33,14 @@ class ChatMessagesController < ApplicationController
   private
 
   def current_chat_room
-    ChatRoom
-      .for_user(current_user)
-      .includes(:recruitment, :chat_participants)
-      .find(params[:chat_room_id])
+    room = ChatRoom
+           .for_user(current_user)
+           .includes(:recruitment, :chat_participants)
+           .find(params[:chat_room_id])
+
+    raise ActiveRecord::RecordNotFound if blocked_room?(room)
+
+    room
   end
 
   def message_params
@@ -49,5 +53,11 @@ class ChatMessagesController < ApplicationController
     participant = room.participant_for(current_user)
     participant.update!(last_read_message: message)
     ::ChatRoomChannel.broadcast_read(room, current_user, message)
+  end
+
+  def blocked_room?(room)
+    return false if blocked_user_ids.empty?
+
+    room.chat_participants.any? { |participant| blocked_user_ids.include?(participant.user_id) }
   end
 end

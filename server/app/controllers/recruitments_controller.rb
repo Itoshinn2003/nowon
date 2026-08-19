@@ -4,6 +4,7 @@ class RecruitmentsController < ApplicationController
   def index
     recruitments = Recruitment
                    .active_now
+                   .then { |scope| exclude_blocked_users(scope) }
                    .then { |scope| filter_by_bounds(scope) }
                    .includes(:recruitment_category, user: { user_profile: { profile_photos: { image_attachment: :blob } } })
                    .order(created_at: :desc)
@@ -104,6 +105,12 @@ class RecruitmentsController < ApplicationController
     end
   end
 
+  def exclude_blocked_users(scope)
+    return scope if blocked_user_ids.empty?
+
+    scope.where.not(user_id: blocked_user_ids)
+  end
+
   def bounds_params?
     %i[north south east west].all? { |key| params[key].present? }
   end
@@ -125,6 +132,7 @@ class RecruitmentsController < ApplicationController
   end
 
   def viewable_recruitment?(recruitment)
+    return false if blocked_relation?(recruitment.user_id)
     return true if recruitment.user_id == current_user.id
     return true if recruitment.active? && recruitment.expires_at.future?
 
